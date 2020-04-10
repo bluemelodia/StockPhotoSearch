@@ -47,3 +47,7 @@ app.use(express.static('website'));
 const server = app.listen(port, () => {
     console.log(`running on localhost: ${port}`);
 })
+
+/* API Base URLs */
+var baseURLs = require('urls');
+const pexelBase = baseURLs.pexelBaseURL;
