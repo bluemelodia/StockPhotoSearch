@@ -1,8 +1,11 @@
 let query = '';
 let searchInput = '';
+let albumContainer = '';
+let album = '';
 
 function setupEventListeners() {
     this.searchInput = document.getElementById('search-input'); 
+    this.albumContainer = document.getElementById('album-container');
     document.getElementById('search-button').addEventListener('click', () => userClicked());
     document.getElementById('search-input').addEventListener('keyup', (e) => {
         if (e.key === 'Enter') {
@@ -31,6 +34,7 @@ const getStockPhotos = async(url = '', data = {}) => {
             return;
         }
         processPhotos(newData);
+        displayPhotos();
     } catch (error) {
         console.log("There was an error processing your request: ", error);
     }
@@ -54,10 +58,33 @@ function processPhotos(data = {}) {
         console.log("Album: ", album);
     }
 
-    return album;
+    this.album = album;
 }
 
-function createAlbum() {
-    console.log("Creating album...");
+function displayPhotos() {
+    console.log("Displaying photos...");
 
+    /* Remove previous children. */
+    this.albumContainer.innerHTML = '';
+    let photoParent = document.createElement('div');
+    photoParent.classList.add('d-flex', 'flex-wrap', 'justify-content-center', 'align-items-center', 'mt-3', 'mb-3');
+
+    this.album.ids.forEach(id => {
+        const photo = this.album.photos[id];
+        let photoTemplate = buildPhotoTemplate(photo);
+        let div = document.createElement('div');
+        div.innerHTML = photoTemplate;
+        photoParent.appendChild(div);
+    });
+
+    this.albumContainer.appendChild(photoParent);
+}
+
+function buildPhotoTemplate(photo = {}) {
+    return `<div class="card p-1" style="width: 18rem;">
+        <img src="..." class="card-img-top" alt="...">
+        <div class="card-body">
+            <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+        </div>
+    </div>`;
 }
