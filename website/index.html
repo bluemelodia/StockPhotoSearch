@@ -3,8 +3,10 @@
     <head>
         <meta charset="UTF-8">
         <title>Stock Photo Explorer</title>
-        <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
-        
+
+        <!-- Bootstrap -->
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
         <!-- Run the JS only after the DOM has been constructed. -->
         <script type="text/javascript" src="app.js"></script>
         <script>
@@ -14,9 +16,12 @@
         </script>
     </head>
     <body>
-        <div class="search-container">
-            <input id="search-input" type="text" placeholder="Search...">
-            <button id="search-button" type="submit">Submit</button>
-        </div>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <div class="text-white mr-auto p-2">Stock Photo Explorer</div>
+            <div class="form-inline">
+                <input class="form-control mr-sm-2" id="search-input" type="search" placeholder="Search" aria-label="Search">
+                <button class="btn btn-outline-primary my-2 my-sm-0" id="search-button" type="submit">Search</button>
+            </div>
+          </nav>
     </body>
 </html>
