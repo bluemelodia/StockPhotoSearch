@@ -51,3 +51,11 @@ const server = app.listen(port, () => {
 /* API Base URLs */
 var baseURLs = require('urls');
 const pexelBase = baseURLs.pexelBaseURL;
+
+/* API Keys */
+var apiKeys = require('api-keys');
+const pexelKey = apiKeys.pexelKey;
+
+async function getPhotos(queryStr = '') {
+    
+}

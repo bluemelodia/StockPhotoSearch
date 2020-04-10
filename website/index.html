@@ -4,8 +4,20 @@
         <meta charset="UTF-8">
         <title>Stock Photo Explorer</title>
         <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+        
+        <!-- Run the JS only after the DOM has been constructed. -->
+        <script type="text/javascript" src="app.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                setupEventListeners();
+            });
+        </script>
     </head>
     <body>
         Hello World!
+        <div class="search-container">
+            <input id="search-input" type="text" placeholder="Search...">
+            <button id="search-button" type="submit">Submit</button>
+        </div>
     </body>
 </html>
