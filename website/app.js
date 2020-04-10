@@ -12,6 +12,22 @@ function setupEventListeners() {
 }
 
 function userClicked() {
-    console.log("THIS: ", this);
-    console.log("QUERY: ", this.searchInput.value);
+    const query = this.searchInput.value;
+    console.log("User queried: ", query);
+    if (query && query.length > 0) {
+        getData("/");
+    }
+}
+
+const getData = async(url = '', data = {}) => {
+    const response = await fetch(url);
+
+    try {
+        console.log("Request success: ", response);
+        const newData = await response.json();
+        console("Returned data: ", newData);
+        return newData;
+    } catch (error) {
+        console.log("There was an error processing your request: ", error);
+    }
 }

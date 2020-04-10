@@ -56,6 +56,12 @@ const pexelBase = baseURLs.pexelBaseURL;
 var apiKeys = require('api-keys');
 const pexelKey = apiKeys.pexelKey;
 
-async function getPhotos(queryStr = '') {
-    
-}
+app.get('/', function (req, res) {
+    res.send('YO!')
+});
+
+/* POST method route - query API. */
+app.get('/photos', (req, res) => {
+    console.log("Call APIs with query: ", req);
+    res.send(JSON.stringify({ res: 'hello' }));
+});
