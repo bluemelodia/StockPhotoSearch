@@ -49,19 +49,26 @@ const server = app.listen(port, () => {
 })
 
 /* API Base URLs */
-var baseURLs = require('urls');
+var baseURLs = require('./urls');
 const pexelBase = baseURLs.pexelBaseURL;
 
 /* API Keys */
-var apiKeys = require('api-keys');
+var apiKeys = require('./api-keys');
 const pexelKey = apiKeys.pexelKey;
 
+/* Set up routes. */
 app.get('/', function (req, res) {
+    console.log("GET /");
     res.send('YO!')
 });
 
 /* POST method route - query API. */
-app.get('/photos', (req, res) => {
-    console.log("Call APIs with query: ", req);
+app.get('/photos', function (req, res) {
+    console.log("GET /photos");
     res.send(JSON.stringify({ res: 'hello' }));
+});
+
+app.get('*', function (req, res) {
+    console.log("No other routes matched...");
+    res.send(JSON.stringify({ res: 'YOU FAILED!!' }));
 });

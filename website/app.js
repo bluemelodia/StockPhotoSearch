@@ -16,6 +16,7 @@ function userClicked() {
     console.log("User queried: ", query);
     if (query && query.length > 0) {
         getData("/");
+        getData("/photos");
     }
 }
 
