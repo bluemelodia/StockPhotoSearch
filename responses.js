@@ -5,8 +5,9 @@ const statusCodes = {
 
 const errorMessages = {
     INVALID_REQUEST: 'There was a problem with your request.',
-    PROCESS_FAILED: 'There was an error processing your request.' 
-}
+    PROCESS_FAILED: 'There was an error processing your request.',
+    UNSUPPORTED_METHOD: 'Method unsupported.'
+};
 
 function buildSuccessResponse(data = {}) {
     return JSON.stringify({

@@ -61,12 +61,8 @@ const pexelKey = apiKeys.PEXELS_API_KEY;
 const responses = require('./responses');
 
 /* Set up routes. */
-app.get('/', function (req, res) {
-    console.log("GET /");
-    res.send('YO!')
-});
 
-/* POST method route - query API. */
+/* GET method route - query API. */
 app.get('/photos/:query', getPhotos);
 async function getPhotos (req, res) {
     if (!req.params.query) {
@@ -94,5 +90,5 @@ async function getPhotos (req, res) {
 
 app.get('*', function (req, res) {
     console.log("No other routes matched...");
-    res.send(JSON.stringify({ res: 'YOU FAILED!!' }));
+    res.send(responses.reqError(responses.errMsg.UNSUPPORTED_METHOD));
 });
