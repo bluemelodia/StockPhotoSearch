@@ -15,8 +15,7 @@ function userClicked() {
     const query = this.searchInput.value;
     console.log("User queried: ", query);
     if (query && query.length > 0) {
-        getData("/");
-        getData("/photos");
+        getData(`/photos/${query}`);
     }
 }
 
@@ -26,7 +25,7 @@ const getData = async(url = '', data = {}) => {
     try {
         console.log("Request success: ", response);
         const newData = await response.json();
-        console("Returned data: ", newData);
+        console.log("Returned data: ", newData);
         return newData;
     } catch (error) {
         console.log("There was an error processing your request: ", error);

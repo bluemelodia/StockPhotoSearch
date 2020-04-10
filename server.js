@@ -9,6 +9,9 @@ const app = express();
 const port = 3000;
 
 /* Dependencies. */
+
+/* Node does not implement the fetch API. */
+const fetch = require("node-fetch");
 const bodyParser = require('body-parser');
 
 /* Express v4+ requires a extra middle-ware layer to handle POST requests. 
@@ -49,12 +52,13 @@ const server = app.listen(port, () => {
 })
 
 /* API Base URLs */
-var baseURLs = require('./urls');
-const pexelBase = baseURLs.pexelBaseURL;
+const baseURLs = require('./urls');
+const pexelBase = baseURLs.PEXELS_BASE_URL;
 
 /* API Keys */
-var apiKeys = require('./api-keys');
-const pexelKey = apiKeys.pexelKey;
+const apiKeys = require('./api-keys');
+const pexelKey = apiKeys.PEXELS_API_KEY;
+const responses = require('./responses');
 
 /* Set up routes. */
 app.get('/', function (req, res) {
@@ -63,10 +67,30 @@ app.get('/', function (req, res) {
 });
 
 /* POST method route - query API. */
-app.get('/photos', function (req, res) {
-    console.log("GET /photos");
-    res.send(JSON.stringify({ res: 'hello' }));
-});
+app.get('/photos/:query', getPhotos);
+async function getPhotos (req, res) {
+    if (!req.params.query) {
+        res.send(responses.reqError(responses.errMsg.INVALID_REQUEST));
+    }
+    const queryStr = req.params.query;
+    const pexelURL = `${pexelBase}?query=${queryStr}&per_page=40&page=1`;
+    console.log(`GET /photos/${queryStr} from ${pexelURL}`);
+
+    const pexelData = await fetch(pexelURL, {
+        headers: {
+            'Authorization' : pexelKey
+        }
+    });
+    
+    try {
+        console.log("Pexel request succeeded!");
+        const pexelResponse = await pexelData.json();
+        res.send(responses.reqSuccess(pexelResponse));
+    } catch (error) {
+        console.log("Pexel request failed: ", error);
+        res.send(responses.reqError(responses.errMsg.PROCESS_FAILED));
+    }
+}
 
 app.get('*', function (req, res) {
     console.log("No other routes matched...");
