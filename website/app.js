@@ -40,7 +40,7 @@ function init() {
     emptySearchDiv = document.createElement('div');
     emptySearchDiv.innerHTML = buildDivWithMessage(emptySearchMessage);
 
-    /* Use Firebase to get saved photos. */
+    /* Potential future improvement: use Firebase to get saved photos. */
 }
 
 /* Setup event listeners for user search actions. */
@@ -168,7 +168,7 @@ function displayStockPhotos(type = albumType.SEARCH) {
     photoParent.classList.add('d-flex', 'flex-wrap', 'justify-content-center', 'align-items-start', 'mt-3', 'mb-3');
 
     if (type === albumType.SAVE) {
-        photoParent.style['height'] = '450px';
+        photoParent.style['max-height'] = '450px';
         photoParent.style['overflow'] = 'scroll';
     }
 
@@ -180,6 +180,7 @@ function displayStockPhotos(type = albumType.SEARCH) {
     /* If there are no photos, show the empty collection message. */
     if (album.ids.length === 0) {
         albumContainer.appendChild(type === albumType.SEARCH? emptySearchDiv : noPhotosDiv);
+        return;
     }
 
     /* Minimize reflows + repaints by adding a parent element to the container
@@ -206,16 +207,23 @@ function buildPhotoTemplate(photo = {}, id, type = albumType.SEARCH) {
             alt="...">
         <div class="card-body">
             <p class="card-text">${photo.photographer}</p>
-            <div class="card-buttons d-flex">
-                <button style="margin: 2px;" onclick="copyURLText('${photo.photographer}: ${photo.photographer_url}')" class="btn btn-dark">Create Citation</button>
+            <div class="card-buttons d-flex flex-wrap">
                 ${ type === albumType.SEARCH ? 
-                    `<button style="margin: 2px;" onclick="savePhoto('${id}')" class="btn btn-dark">Add to Album</button>`
-                        :
-                    `<button style="margin: 2px;" onclick="deletePhoto('${id}')" class="btn btn-dark">Remove from Album</button>`
+                    `<button style="margin: 2px;" onclick="savePhoto('${id}')" class="btn btn-dark">Bookmark</button>`
+                    :
+                    `<button style="margin: 2px;" onclick="deletePhoto('${id}')" class="btn btn-dark">Remove</button>`
                 }
+                <button style="margin: 2px;" onclick="copyURLText('${photo.photographer}: ${photo.photographer_url}')" class="btn btn-dark">Create Citation</button>
+                <button style="margin: 2px;" onclick="openURL('${photo.url}')" class="btn btn-dark">Visit</button>
+                <button type="button" style="margin: 2px;" class="btn btn-dark" data-toggle="modal" data-target="#previewModal">Preview</button>
             </div>
         </div>
     </div>`;
+}
+
+/* Helper method to open URL in a separate tab. */
+function openURL(url) {
+    window.open(url, "_blank");
 }
 
 /* Helper method to create an HTML message. */
@@ -230,3 +238,4 @@ function copyURLText(urlText = '') {
     navigator.clipboard.writeText(urlText);
     alert("Copied the text: " + urlText);
 }
+
