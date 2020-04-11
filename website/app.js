@@ -67,7 +67,7 @@ function displayPhotos() {
     /* Remove previous children. */
     this.albumContainer.innerHTML = '';
     let photoParent = document.createElement('div');
-    photoParent.classList.add('d-flex', 'flex-wrap', 'justify-content-center', 'align-items-center', 'mt-3', 'mb-3');
+    photoParent.classList.add('d-flex', 'flex-wrap', 'justify-content-center', 'align-items-start', 'mt-3', 'mb-3');
 
     this.album.ids.forEach(id => {
         const photo = this.album.photos[id];
@@ -82,20 +82,31 @@ function displayPhotos() {
 }
 
 function buildPhotoTemplate(photo = {}) {
-    return `<div class="card p1" style="width: 18rem;">
-        <img src="${photo.src.portrait}" 
+    return `<div class="card p1" style="width: 18rem; margin: 5px;">
+        <img style="height: 15rem; object-fit:cover;" src="${photo.src.large2x}" 
             id="stock-img-${photo.id}" 
             class="card-img-top" 
             data-toggle="modal" data-target="#fullImageModal"
             alt="...">
         <div class="card-body">
             <p class="card-text">${photo.photographer}</p>
-            <button onclick="copyURLText('${photo.photographer}: ${photo.photographer_url}')" class="btn btn-primary">Create Citation</button>
+            <div class="card-buttons d-flex">
+                <button style="margin: 2px;" onclick="copyURLText('${photo.photographer}: ${photo.photographer_url}')" class="btn btn-dark">Create Citation</button>
+                <button style="margin: 2px;" onclick="savePhoto('${photo})" class="btn btn-dark">Add to Album</button>
+            </div>
         </div>
     </div>`;
 }
 
+/* Helper function to create a citation with the format <photographer_name> : <photographer_url>. */
 function copyURLText(urlText = '') {
     navigator.clipboard.writeText(urlText);
     alert("Copied the text: " + urlText);
 }
+
+/* Make a request to the server to save the photo. */
+function savePhoto(photo = {}) {
+    console.log("Save this photo please: ", photo);
+}
+
+
