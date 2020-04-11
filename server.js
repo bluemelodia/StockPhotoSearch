@@ -128,10 +128,7 @@ async function getSavedPhotos(req, res) {
 }
 
 /* GET method route - query API for next page. */
-app.get('/photos/:query/page/:pageNum', getNextPage);
-async function getNextPage(req, res) {
-    console.log("Time for the next page...");
-}
+app.get('/photos/:query/page/:pageNum', getPhotos);
 
 /* GET method route - query API. */
 app.get('/photos/:query', getPhotos);
@@ -145,8 +142,8 @@ async function getPhotos(req, res) {
     let pexelURL = `${pexelBase}?query=${queryStr}&per_page=80&page=1`;
 
     /* Fetch the nth page of results. */
-    if (req.params.page && req.params.page > 1) {
-        pexelURL = `${pexelBase}/?page=${req.params.page}&query=${queryStr}&per_page=80`;
+    if (req.params.pageNum && req.params.pageNum > 1) {
+        pexelURL = `${pexelBase}/?page=${req.params.pageNum}&query=${queryStr}&per_page=80`;
     }
     console.log(`GET /photos/${queryStr} from ${pexelURL}`);
 

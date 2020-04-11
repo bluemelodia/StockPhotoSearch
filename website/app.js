@@ -120,7 +120,7 @@ const getStockPhotos = async(url = '', type = albumType.SEARCH, isNextPage = fal
             return;
         }
         if (type === albumType.SEARCH) {
-            processStockPhotos(newData, false);
+            processStockPhotos(newData, isNextPage);
         } else {
             processSavedPhotos(newData);
         }
@@ -162,7 +162,8 @@ function processStockPhotos(data = {}, isNextPage = false) {
         }
     }
     if (isNextPage) {
-        stockAlbum.searched.ids.concat(album.ids);
+        console.log("Nextpage!");
+        stockAlbum.searched.ids = stockAlbum.searched.ids.concat(album.ids);
         stockAlbum.searched.photos = Object.assign({}, stockAlbum.searched.photos, album.photos);
     } else {
         stockAlbum.searched = album;
