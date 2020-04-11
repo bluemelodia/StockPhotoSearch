@@ -135,7 +135,7 @@ async function getPhotos(req, res) {
         return;
     }
     const queryStr = req.params.query;
-    const pexelURL = `${pexelBase}?query=${queryStr}&per_page=40&page=1`;
+    const pexelURL = `${pexelBase}?query=${queryStr}&per_page=80&page=1`;
     console.log(`GET /photos/${queryStr} from ${pexelURL}`);
 
     const pexelData = await fetch(pexelURL, {

@@ -50,6 +50,8 @@ function init() {
     this.previewModalTitle = document.getElementById('previewModalTitle');
     this.previewModalImage = document.getElementById('previewModalImage');
 
+    getStockPhotos('/photos/saved', albumType.SAVE);
+
     /* Potential future improvement: use Firebase to get saved photos. */
 }
 
@@ -172,11 +174,13 @@ function displayStockPhotos(type = albumType.SEARCH) {
     console.log("Displaying photos...");
 
     let photoParent = document.createElement('div');
-    photoParent.classList.add('d-flex', 'flex-wrap', 'justify-content-center', 'align-items-start', 'mt-3', 'mb-3');
+    photoParent.classList.add('d-flex', 'flex-wrap', 'justify-content-center', 'align-items-start');
 
     if (type === albumType.SAVE) {
-        photoParent.style['max-height'] = '450px';
-        photoParent.style['overflow'] = 'scroll';
+        photoParent.style['max-height'] = '420px';
+        photoParent.style['overflow-y'] = 'scroll';
+    } else {
+        photoParent.classList.add('mt-3', 'mb-3');
     }
 
     const albumContainer = type === albumType.SEARCH? this.albumContainer : this.savedPhotosContainer;
@@ -224,7 +228,7 @@ function buildPhotoTemplate(photo = {}, id, type = albumType.SEARCH) {
                 <button style="margin: 2px;" onclick="openURL('${photo.url}')" class="btn btn-dark">Visit</button>
                 <button type="button" style="margin: 2px;" 
                     onclick="configureModal('${photo.photographer}', '${photo.src.original}')" 
-                    class="btn btn-dark" data-toggle="modal" data-target="#previewModal">Preview</button>
+                    class="btn btn-dark" data-toggle="modal" data-target="#previewModal">Full View</button>
             </div>
         </div>
     </div>`;
