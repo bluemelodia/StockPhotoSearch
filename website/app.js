@@ -197,7 +197,7 @@ function displayStockPhotos(type = albumType.SEARCH) {
     photoParent.classList.add('d-flex', 'flex-wrap', 'justify-content-center', 'align-items-start');
 
     if (type === albumType.SAVE) {
-        photoParent.style['max-height'] = '420px';
+        photoParent.style['max-height'] = '340px';
         photoParent.style['overflow-y'] = 'scroll';
     } else {
         photoParent.classList.add('mt-3', 'mb-3');
@@ -249,7 +249,10 @@ function buildPhotoTemplate(photo = {}, id, type = albumType.SEARCH) {
             data-toggle="modal" data-target="#fullImageModal"
             alt="...">
         <div class="card-body">
-            <p class="card-text">${photo.photographer}</p>
+            <p class="card-text" 
+                style="width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                ${photo.photographer}
+            </p>
             <div class="card-buttons d-flex flex-wrap">
                 ${ type === albumType.SEARCH ? 
                     `<button style="margin: 2px;" onclick="savePhoto('${id}')" class="btn btn-dark">Bookmark</button>`
