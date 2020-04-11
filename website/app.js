@@ -16,6 +16,10 @@ const noPhotosMsg = 'You have no saved photos.';
 let emptySearchDiv;
 const emptySearchMessage = 'No results found';
 
+/* Preview modal. */
+let previewModalTitle;
+let previewModalImage;
+
 let stockAlbum = {};
 
 const albumType = {
@@ -40,14 +44,17 @@ function init() {
     emptySearchDiv = document.createElement('div');
     emptySearchDiv.innerHTML = buildDivWithMessage(emptySearchMessage);
 
+    this.searchInput = document.getElementById('search-input'); 
+    this.albumContainer = document.getElementById('album-container');
+    this.savedPhotosContainer = document.getElementById('saved-photos-container');
+    this.previewModalTitle = document.getElementById('previewModalTitle');
+    this.previewModalImage = document.getElementById('previewModalImage');
+
     /* Potential future improvement: use Firebase to get saved photos. */
 }
 
 /* Setup event listeners for user search actions. */
 function setupEventListeners() {
-    this.searchInput = document.getElementById('search-input'); 
-    this.albumContainer = document.getElementById('album-container');
-    this.savedPhotosContainer = document.getElementById('saved-photos-container');
     document.getElementById('search-button').addEventListener('click', () => userClicked());
     document.getElementById('search-input').addEventListener('keyup', (e) => {
         if (e.key === 'Enter') {
@@ -215,7 +222,9 @@ function buildPhotoTemplate(photo = {}, id, type = albumType.SEARCH) {
                 }
                 <button style="margin: 2px;" onclick="copyURLText('${photo.photographer}: ${photo.photographer_url}')" class="btn btn-dark">Create Citation</button>
                 <button style="margin: 2px;" onclick="openURL('${photo.url}')" class="btn btn-dark">Visit</button>
-                <button type="button" style="margin: 2px;" class="btn btn-dark" data-toggle="modal" data-target="#previewModal">Preview</button>
+                <button type="button" style="margin: 2px;" 
+                    onclick="configureModal('${photo.photographer}', '${photo.src.original}')" 
+                    class="btn btn-dark" data-toggle="modal" data-target="#previewModal">Preview</button>
             </div>
         </div>
     </div>`;
@@ -239,3 +248,8 @@ function copyURLText(urlText = '') {
     alert("Copied the text: " + urlText);
 }
 
+/* Called when modal is opened. */
+function configureModal(title, src) {
+    this.previewModalTitle.innerHTML = title;
+    this.previewModalImage.setAttribute('src', src);
+}
