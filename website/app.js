@@ -101,6 +101,30 @@ function displayPhotos() {
 /* Make a request to the server to save the photo. */
 function savePhoto(photoId) {
     console.log("Save this photo please: ", photoId);
+    saveStockPhoto('/addPhoto', { id: photoId, photo: this.album.photos[photoId] });
+}
+
+const saveStockPhoto = async(url = '', data = {}) => {
+    const response = await fetch(url, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data) // body data type must match "Content-Type" header
+    });
+
+    try {
+        console.log("Request success: ", response);
+        const newData = await response.json();
+        console.log("Returned data: ", newData);
+        if (newData.statusCode !== 0) {
+            console.log("Something went wrong...");
+            return;
+        }
+    } catch (error) {
+        console.log("There was an error processing your request: ", error);
+    }
 }
 
 /* ------------- COMMON METHODS --------------- */

@@ -1,5 +1,8 @@
 /* Empty JS object to act as an endpoint for all routes. */
-let projectData = {};
+let savedPhotos = {
+    ids: [],
+    photos: {}
+};
 
 /* Express to run server and routes. */
 const express = require('express');
@@ -61,6 +64,27 @@ const pexelKey = apiKeys.PEXELS_API_KEY;
 const responses = require('./responses');
 
 /* Set up routes. */
+
+/* POST method route - save photos. */
+app.post('/addPhoto', addPhoto);
+function addPhoto(req, res) {
+    try {
+        if (req.body.id && req.body.photo) {
+            const id = req.body.id;
+            const photo = req.body.photo;
+
+            savedPhotos.ids.push(id);
+            savedPhotos.photos[id] = photo; 
+            console.log("Added new photo: ", id, photo);
+            res.send(responses.reqSuccess());
+        }
+    } catch (error) {
+        console.log("Failed to add photo ", error);
+        res.send(responses.reqError(responses.errMsg.PROCESS_FAILED));
+    }
+}
+
+/* GET method route - get saved photos. */
 
 /* GET method route - query API. */
 app.get('/photos/:query', getPhotos);
