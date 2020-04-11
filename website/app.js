@@ -1,5 +1,6 @@
 /* Note: lets and consts are not defined on window, which is the value of this in this context. */
 let query = '';
+let nextPage = 1;
 let searchInput = '';
 
 /* Nav + saved photos. */
@@ -68,10 +69,17 @@ function init() {
     getStockPhotos('/photos/saved', albumType.SAVE);
 
     /* Potential future improvement: use Firebase to get saved photos. */
+    /* TODO: fetch subsequent pages. */
 }
 
-/* Setup event listeners for user search actions. */
+/* Setup event listeners for user actions. */
 function setupEventListeners() {
+    window.onscroll = function(e) {
+        if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight) {
+            getNextPageStockPhotos();
+        }
+    }
+
     document.getElementById('search-button').addEventListener('click', () => userClicked());
     document.getElementById('search-input').addEventListener('keyup', (e) => {
         if (e.key === 'Enter') {
@@ -80,18 +88,27 @@ function setupEventListeners() {
     });
 }
 
+/* Only make the API call if the user is making a new query. */
 function userClicked() {
-    const query = this.searchInput.value;
-    console.log("User queried: ", query);
-    if (query && query.length > 0) {
-        getStockPhotos(`/photos/${query}`);
+    const userQuery = this.searchInput.value;
+    if (userQuery && userQuery.length > 0 && userQuery !== query) {
+        query = userQuery;
+        nextPage = 1;
+        getStockPhotos(`/photos/${userQuery}`);
     }
 }
 
 /* ------------- GET STOCK PHOTOS --------------- */
 
+function getNextPageStockPhotos() {
+    if (query && query.length > 0 && nextPage > 1) {
+        console.log("Page and query: ", query, nextPage);
+        getStockPhotos(`/photos/${query}/page/${nextPage}`, albumType.SEARCH, true);
+    }
+}
+
 /* Request stock photos from the server, then update the UI. */
-const getStockPhotos = async(url = '', type = albumType.SEARCH) => {
+const getStockPhotos = async(url = '', type = albumType.SEARCH, isNextPage = false) => {
     const response = await fetch(url);
 
     try {
@@ -103,7 +120,7 @@ const getStockPhotos = async(url = '', type = albumType.SEARCH) => {
             return;
         }
         if (type === albumType.SEARCH) {
-            processStockPhotos(newData);
+            processStockPhotos(newData, false);
         } else {
             processSavedPhotos(newData);
         }
@@ -122,12 +139,13 @@ function processSavedPhotos(data = {}) {
 }
 
 /* Create an array of photo ids for easy iteration, plus dictionary of id : photo mappings. */
-function processStockPhotos(data = {}) {
+function processStockPhotos(data = {}, isNextPage = false) {
     console.log("Processing photos...");
     let album = {};
+    let responseData = data.responseData;
 
-    if (data.responseData && data.responseData.photos) {
-        let photos = data.responseData.photos;
+    if (responseData && responseData.photos) {
+        let photos = responseData.photos;
         let photoIDs = [];
         let photoData = {};
         photos.forEach(photo => {
@@ -137,8 +155,18 @@ function processStockPhotos(data = {}) {
         });
         album.ids = photoIDs;
         album.photos = photoData;
+
+        /* Determine if there will be additional pages after this. */
+        if (responseData.page * 80 < responseData.total_results) {
+            nextPage = responseData.page + 1;
+        }
     }
-    stockAlbum.searched = album;
+    if (isNextPage) {
+        stockAlbum.searched.ids.concat(album.ids);
+        stockAlbum.searched.photos = Object.assign({}, stockAlbum.searched.photos, album.photos);
+    } else {
+        stockAlbum.searched = album;
+    }
 }
 
 /* ------------- SAVE STOCK PHOTOS --------------- */
