@@ -97,7 +97,28 @@ function addPhoto(req, res) {
 /* DELETE method route - remove a saved photo. */
 app.delete('/removePhoto/:id', deletePhoto);
 function deletePhoto(req, res) {
-    console.log("received a request to delete photo");
+    if (!req.params.id) {
+        res.send(responses.reqError(responses.errMsg.INVALID_REQUEST));
+        return;
+    }
+
+    try {
+        const id = req.params.id;
+         /* Check for existing id. */
+         if (!savedPhotos.photos[id]) {
+            res.send(responses.reqError(responses.errMsg.MISSING_ENTRY));
+            return;
+        }
+
+        savedPhotos.ids = savedPhotos.ids.filter(photoId => photoId !== id);
+        delete savedPhotos.photos[id]; 
+
+        console.log("Removed photo with id: ", id);
+        res.send(responses.reqSuccess());
+    } catch (error) {
+        console.log("Failed to remove photo ", error);
+        res.send(responses.reqError(responses.errMsg.PROCESS_FAILED));
+    }
 }
 
 /* GET method route - get saved photos. */

@@ -8,6 +8,14 @@ let albumContainer = '';
 /* Container for saved photos. */
 let savedPhotosContainer = '';
 
+/* No photos in the collection. */
+let noPhotosDiv;
+const noPhotosMsg = 'You have no saved photos.';
+
+/* Search returned nothing. */
+let emptySearchDiv;
+const emptySearchMessage = 'No results found';
+
 let stockAlbum = {};
 
 const albumType = {
@@ -25,6 +33,12 @@ function init() {
         saved: {},
         searched: {}
     };
+
+    noPhotosDiv = document.createElement('div');
+    noPhotosDiv.innerHTML = buildDivWithMessage(noPhotosMsg);
+
+    emptySearchDiv = document.createElement('div');
+    emptySearchDiv.innerHTML = buildDivWithMessage(emptySearchMessage);
 
     /* Use Firebase to get saved photos. */
 }
@@ -163,6 +177,11 @@ function displayStockPhotos(type = albumType.SEARCH) {
     albumContainer.innerHTML = '';
     const album = type === albumType.SEARCH? stockAlbum.searched : stockAlbum.saved;
 
+    /* If there are no photos, show the empty collection message. */
+    if (album.ids.length === 0) {
+        albumContainer.appendChild(type === albumType.SEARCH? emptySearchDiv : noPhotosDiv);
+    }
+
     /* Minimize reflows + repaints by adding a parent element to the container
      * as opposed to appending each child element directly. */
     album.ids.forEach(id => {
@@ -196,6 +215,13 @@ function buildPhotoTemplate(photo = {}, id, type = albumType.SEARCH) {
                 }
             </div>
         </div>
+    </div>`;
+}
+
+/* Helper method to create an HTML message. */
+function buildDivWithMessage(message = '') {
+    return `<div class="alert alert-light" role="alert" style="text-align: center;">
+        ${message} 
     </div>`;
 }
 
