@@ -1,23 +1,39 @@
+/* Note: lets and consts are not defined on window, which is the value of this in this context. */
 let query = '';
 let searchInput = '';
 
-/* Album of queried photos. */
+/* Container for queried photos. */
 let albumContainer = '';
-let album = '';
 
-/* Album of saved photos. */
+/* Container for saved photos. */
+let savedPhotosContainer = '';
+
+let stockAlbum = {};
 
 const albumType = {
     'SEARCH' : 'Search',
     'SAVE' : 'Save'
 };
 
-/* ------------- GET STOCK PHOTOS --------------- */
+const albumOp = {
+    'SAVE' : 'POST',
+    'REMOVE' : 'DELETE'
+};
+
+function init() {
+    stockAlbum = {
+        saved: {},
+        searched: {}
+    };
+
+    /* Use Firebase to get saved photos. */
+}
 
 /* Setup event listeners for user search actions. */
 function setupEventListeners() {
     this.searchInput = document.getElementById('search-input'); 
     this.albumContainer = document.getElementById('album-container');
+    this.savedPhotosContainer = document.getElementById('saved-photos-container');
     document.getElementById('search-button').addEventListener('click', () => userClicked());
     document.getElementById('search-input').addEventListener('keyup', (e) => {
         if (e.key === 'Enter') {
@@ -34,8 +50,10 @@ function userClicked() {
     }
 }
 
-/* Request stock photos from the server. */
-const getStockPhotos = async(url = '', data = {}) => {
+/* ------------- GET STOCK PHOTOS --------------- */
+
+/* Request stock photos from the server, then update the UI. */
+const getStockPhotos = async(url = '', type = albumType.SEARCH) => {
     const response = await fetch(url);
 
     try {
@@ -46,15 +64,27 @@ const getStockPhotos = async(url = '', data = {}) => {
             console.log("Something went wrong...");
             return;
         }
-        processPhotos(newData);
-        displayPhotos();
+        if (type === albumType.SEARCH) {
+            processStockPhotos(newData);
+        } else {
+            processSavedPhotos(newData);
+        }
+        console.log("Album: ", stockAlbum);
+        displayStockPhotos(type);
     } catch (error) {
         console.log("There was an error processing your request: ", error);
     }
 }
 
+/* The server will return the photos as id : photo mappings. */
+function processSavedPhotos(data = {}) {
+    if (data.responseData) {
+        stockAlbum.saved = data.responseData;
+    }
+}
+
 /* Create an array of photo ids for easy iteration, plus dictionary of id : photo mappings. */
-function processPhotos(data = {}) {
+function processStockPhotos(data = {}) {
     console.log("Processing photos...");
     let album = {};
 
@@ -69,31 +99,8 @@ function processPhotos(data = {}) {
         });
         album.ids = photoIDs;
         album.photos = photoData;
-        console.log("Album: ", album);
     }
-
-    this.album = album;
-}
-
-/* Add returned photos to the album container. */
-function displayPhotos() {
-    console.log("Displaying photos...");
-
-    /* Remove previous children. */
-    this.albumContainer.innerHTML = '';
-    let photoParent = document.createElement('div');
-    photoParent.classList.add('d-flex', 'flex-wrap', 'justify-content-center', 'align-items-start', 'mt-3', 'mb-3');
-
-    this.album.ids.forEach(id => {
-        const photo = this.album.photos[id];
-        let photoTemplate = buildPhotoTemplate(photo, id);
-
-        let div = document.createElement('div');
-        div.innerHTML = photoTemplate;
-        photoParent.appendChild(div);
-    });
-
-    this.albumContainer.appendChild(photoParent);
+    stockAlbum.searched = album;
 }
 
 /* ------------- SAVE STOCK PHOTOS --------------- */
@@ -101,33 +108,74 @@ function displayPhotos() {
 /* Make a request to the server to save the photo. */
 function savePhoto(photoId) {
     console.log("Save this photo please: ", photoId);
-    saveStockPhoto('/addPhoto', { id: photoId, photo: this.album.photos[photoId] });
+    modifyPhotoCollection('/addPhoto', albumOp.SAVE, { id: photoId, photo: stockAlbum.searched.photos[photoId] });
 }
 
-const saveStockPhoto = async(url = '', data = {}) => {
-    const response = await fetch(url, {
+/* Make a request to the server to delete a saved photo. */
+function deletePhoto(photoId) {
+    console.log("Save this photo please: ", photoId);
+    modifyPhotoCollection(`/removePhoto/${photoId}`, albumOp.REMOVE);
+}
+
+/* Convenience method to save/delete a photo, then update the UI with the updated
+ * collection from the server. */
+const modifyPhotoCollection = async(url = '', operation, data = {}) => {
+    let requestOptions = operation === albumOp.SAVE ? 
+    {
         method: 'POST',
         credentials: 'same-origin',
         headers: {
             'Content-Type': 'application/json',
         },
         body: JSON.stringify(data) // body data type must match "Content-Type" header
-    });
+    } 
+    : 
+    { method: 'DELETE' };
 
-    try {
-        console.log("Request success: ", response);
-        const newData = await response.json();
-        console.log("Returned data: ", newData);
-        if (newData.statusCode !== 0) {
-            console.log("Something went wrong...");
-            return;
+    await fetch(url, requestOptions)
+    .then(response => response.json())
+    .then(data => {
+        console.log("Save photo response: ", data);
+        if (data.statusCode !== 0) {
+            throw `failed to ${ operation === albumOp.SAVE ? 'save' : 'delete' } photo`;
         }
-    } catch (error) {
-        console.log("There was an error processing your request: ", error);
-    }
+        getStockPhotos('/photos/saved', albumType.SAVE);
+    })
+    .catch(error => console.log("There was an error processing your request: ", error));
 }
 
 /* ------------- COMMON METHODS --------------- */
+
+/* Add returned photos to the album container. */
+function displayStockPhotos(type = albumType.SEARCH) {
+    console.log("Displaying photos...");
+
+    let photoParent = document.createElement('div');
+    photoParent.classList.add('d-flex', 'flex-wrap', 'justify-content-center', 'align-items-start', 'mt-3', 'mb-3');
+
+    if (type === albumType.SAVE) {
+        photoParent.style['height'] = '450px';
+        photoParent.style['overflow'] = 'scroll';
+    }
+
+    const albumContainer = type === albumType.SEARCH? this.albumContainer : this.savedPhotosContainer;
+    /* Remove previous children. */
+    albumContainer.innerHTML = '';
+    const album = type === albumType.SEARCH? stockAlbum.searched : stockAlbum.saved;
+
+    /* Minimize reflows + repaints by adding a parent element to the container
+     * as opposed to appending each child element directly. */
+    album.ids.forEach(id => {
+        const photo = album.photos[id];
+        let photoTemplate = buildPhotoTemplate(photo, id, type);
+
+        let div = document.createElement('div');
+        div.innerHTML = photoTemplate;
+        photoParent.appendChild(div);
+    });
+
+    albumContainer.appendChild(photoParent);
+}
 
 /* Card component to display the photo and related actions. */
 function buildPhotoTemplate(photo = {}, id, type = albumType.SEARCH) {
@@ -141,10 +189,10 @@ function buildPhotoTemplate(photo = {}, id, type = albumType.SEARCH) {
             <p class="card-text">${photo.photographer}</p>
             <div class="card-buttons d-flex">
                 <button style="margin: 2px;" onclick="copyURLText('${photo.photographer}: ${photo.photographer_url}')" class="btn btn-dark">Create Citation</button>
-                ${ type === albumType.SEARCH? 
+                ${ type === albumType.SEARCH ? 
                     `<button style="margin: 2px;" onclick="savePhoto('${id}')" class="btn btn-dark">Add to Album</button>`
                         :
-                    `<button>Remove from album</button>`
+                    `<button style="margin: 2px;" onclick="deletePhoto('${id}')" class="btn btn-dark">Remove from Album</button>`
                 }
             </div>
         </div>

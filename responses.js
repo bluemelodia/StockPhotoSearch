@@ -6,7 +6,8 @@ const statusCodes = {
 const errorMessages = {
     INVALID_REQUEST: 'There was a problem with your request.',
     PROCESS_FAILED: 'There was an error processing your request.',
-    UNSUPPORTED_METHOD: 'Method unsupported.'
+    UNSUPPORTED_METHOD: 'Method unsupported.',
+    DUPLICATE_ENTRY: 'The item you are trying to add is already in the collection.'
 };
 
 function buildSuccessResponse(data = {}) {

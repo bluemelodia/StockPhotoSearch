@@ -68,29 +68,50 @@ const responses = require('./responses');
 /* POST method route - save photos. */
 app.post('/addPhoto', addPhoto);
 function addPhoto(req, res) {
-    try {
-        if (req.body.id && req.body.photo) {
-            const id = req.body.id;
-            const photo = req.body.photo;
+    if (!req.body.id || !req.body.photo) {
+        res.send(responses.reqError(responses.errMsg.INVALID_REQUEST));
+        return;
+    }
 
-            savedPhotos.ids.push(id);
-            savedPhotos.photos[id] = photo; 
-            console.log("Added new photo: ", id, photo);
-            res.send(responses.reqSuccess());
+    try {
+        const id = req.body.id;
+        const photo = req.body.photo;
+
+        /* Prevent adding duplicates. */
+        if (savedPhotos.photos[id]) {
+            res.send(responses.reqError(responses.errMsg.DUPLICATE_ENTRY));
+            return;
         }
+
+        savedPhotos.ids.push(id);
+        savedPhotos.photos[id] = photo; 
+
+        console.log("Added new photo: ", id, photo);
+        res.send(responses.reqSuccess());
     } catch (error) {
         console.log("Failed to add photo ", error);
         res.send(responses.reqError(responses.errMsg.PROCESS_FAILED));
     }
 }
 
+/* DELETE method route - remove a saved photo. */
+app.delete('/removePhoto/:id', deletePhoto);
+function deletePhoto(req, res) {
+    console.log("received a request to delete photo");
+}
+
 /* GET method route - get saved photos. */
+app.get('/photos/saved', getSavedPhotos);
+async function getSavedPhotos(req, res) {
+    res.send(responses.reqSuccess(savedPhotos));
+}
 
 /* GET method route - query API. */
 app.get('/photos/:query', getPhotos);
-async function getPhotos (req, res) {
+async function getPhotos(req, res) {
     if (!req.params.query) {
         res.send(responses.reqError(responses.errMsg.INVALID_REQUEST));
+        return;
     }
     const queryStr = req.params.query;
     const pexelURL = `${pexelBase}?query=${queryStr}&per_page=40&page=1`;
@@ -112,7 +133,7 @@ async function getPhotos (req, res) {
     }
 }
 
-app.get('*', function (req, res) {
+app.get('*', function(req, res) {
     console.log("No other routes matched...");
     res.send(responses.reqError(responses.errMsg.UNSUPPORTED_METHOD));
 });
