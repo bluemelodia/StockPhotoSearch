@@ -17,28 +17,31 @@
         </script>
     </head>
     <body>
-        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-            <div class="text-white mr-auto p-2">Stock Photo Explorer</div>
-            <div class="form-inline">
-                <input class="form-control mr-sm-2" id="search-input" type="search" placeholder="Search" aria-label="Search">
-                <button class="btn btn-outline-primary my-2 my-sm-0" id="search-button" type="submit">Search</button>
-            </div>
-        </nav>
-        <section id="saved-photos" class="card text-center">
-            <div class="card-header">
-                Saved Photos
-            </div>
-            <div class="card-body" id="saved-photos-container">
-            </div>
-        </section>
-        <section id="album-container"></section>   
-  
+        <div id="top-container">
+            <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+                <div class="text-white mr-auto p-2">Stock Photo Explorer</div>
+                <div class="form-inline">
+                    <input id="search-input" class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
+                    <button id="search-button" class="btn btn-outline-primary my-2 my-sm-0" type="submit">Search</button>
+                </div>
+            </nav>
+            <section id="saved-photos" class="card text-center">
+                <div class="card-header">
+                    Saved Photos
+                </div>
+                <div id="saved-photos-container" class="card-body">
+                </div>
+            </section>
+        </div>
+        <section id="alerts-container"></section>
+        <section id="album-container"></section> 
+
         <!-- Modal -->
-        <div class="modal fade" id="previewModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div id="previewModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-xl" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                <h5 class="modal-title" id="previewModalTitle"></h5>
+                <h5 id="previewModalTitle" class="modal-title"></h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>

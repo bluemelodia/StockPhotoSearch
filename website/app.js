@@ -2,11 +2,17 @@
 let query = '';
 let searchInput = '';
 
+/* Nav + saved photos. */
+let topContainer;
+
 /* Container for queried photos. */
 let albumContainer = '';
 
 /* Container for saved photos. */
 let savedPhotosContainer = '';
+
+/* Container for alerts. */
+let alertsContainer = '';
 
 /* No photos in the collection. */
 let noPhotosDiv;
@@ -32,6 +38,13 @@ const albumOp = {
     'REMOVE' : 'DELETE'
 };
 
+const alertType = {
+    'INFORMATION' : 0,
+    'SUCCESS' : 1,
+    'ERROR' : 2,
+    'WARNING' : 3
+}
+
 function init() {
     stockAlbum = {
         saved: {},
@@ -45,8 +58,10 @@ function init() {
     emptySearchDiv.innerHTML = buildDivWithMessage(emptySearchMessage);
 
     this.searchInput = document.getElementById('search-input'); 
+    this.topContainer = document.getElementById('top-container');
     this.albumContainer = document.getElementById('album-container');
     this.savedPhotosContainer = document.getElementById('saved-photos-container');
+    this.alertsContainer = document.getElementById('alerts-container');
     this.previewModalTitle = document.getElementById('previewModalTitle');
     this.previewModalImage = document.getElementById('previewModalImage');
 
@@ -162,9 +177,14 @@ const modifyPhotoCollection = async(url = '', operation, data = {}) => {
         if (data.statusCode !== 0) {
             throw `failed to ${ operation === albumOp.SAVE ? 'save' : 'delete' } photo`;
         }
+        displayAlert(alertType.SUCCESS, `Your photo was ${ operation === albumOp.SAVE ? 'added to' : 'deleted from' } your bookmarks.`);
+
         getStockPhotos('/photos/saved', albumType.SAVE);
     })
-    .catch(error => console.log("There was an error processing your request: ", error));
+    .catch(error => { 
+        console.log("There was an error processing your request: ", error);
+        displayAlert(alertType.ERROR, `Could not ${ operation === albumOp.SAVE ? 'save' : 'delete' } photo. Please try again later.`);
+    });
 }
 
 /* ------------- COMMON METHODS --------------- */
@@ -198,20 +218,32 @@ function displayStockPhotos(type = albumType.SEARCH) {
      * as opposed to appending each child element directly. */
     album.ids.forEach(id => {
         const photo = album.photos[id];
-        let photoTemplate = buildPhotoTemplate(photo, id, type);
-
         let div = document.createElement('div');
-        div.innerHTML = photoTemplate;
+        div.innerHTML = buildPhotoTemplate(photo, id, type);
         photoParent.appendChild(div);
     });
 
     albumContainer.appendChild(photoParent);
 }
 
+function displayAlert(type = alertType.INFORMATION, message) {
+    this.alertsContainer.innerHTML = '';
+    let div = document.createElement('div');
+    div.innerHTML = buildAlertWithMessage(type, message);
+    this.alertsContainer.appendChild(div);
+}
+
+/* ------------- HTML TEMPLATES --------------- */
+
 /* Card component to display the photo and related actions. */
 function buildPhotoTemplate(photo = {}, id, type = albumType.SEARCH) {
-    return `<div class="card p1" style="width: 18rem; margin: 5px;">
-        <img style="height: 15rem; object-fit:cover;" src="${photo.src.large2x}" 
+    let height = type === albumType.SEARCH ? '15rem' : '10rem';
+    let width = type === albumType.SEARCH ? '18rem' : '12rem';
+    let citeText = type === albumType.SEARCH ? 'Create Citation' : 'Cite';
+    let viewText = type === albumType.SEARCH ? 'Full View' : 'View';
+
+    return `<div class="card p1" style="width: ${ width }; margin: 5px;">
+        <img style="height: ${ height }; object-fit:cover;" src="${photo.src.large2x}" 
             id="stock-img-${id}" 
             class="card-img-top" 
             data-toggle="modal" data-target="#fullImageModal"
@@ -224,26 +256,53 @@ function buildPhotoTemplate(photo = {}, id, type = albumType.SEARCH) {
                     :
                     `<button style="margin: 2px;" onclick="deletePhoto('${id}')" class="btn btn-dark">Remove</button>`
                 }
-                <button style="margin: 2px;" onclick="copyURLText('${photo.photographer}: ${photo.photographer_url}')" class="btn btn-dark">Create Citation</button>
+                <button style="margin: 2px;" onclick="copyURLText('${photo.photographer}: ${photo.photographer_url}')" class="btn btn-dark">${ citeText }</button>
                 <button style="margin: 2px;" onclick="openURL('${photo.url}')" class="btn btn-dark">Visit</button>
                 <button type="button" style="margin: 2px;" 
                     onclick="configureModal('${photo.photographer}', '${photo.src.original}')" 
-                    class="btn btn-dark" data-toggle="modal" data-target="#previewModal">Full View</button>
+                    class="btn btn-dark" data-toggle="modal" data-target="#previewModal">${viewText}</button>
             </div>
         </div>
     </div>`;
 }
 
-/* Helper method to open URL in a separate tab. */
-function openURL(url) {
-    window.open(url, "_blank");
-}
-
-/* Helper method to create an HTML message. */
+/* Helper function to create an HTML message. */
 function buildDivWithMessage(message = '') {
     return `<div class="alert alert-light" role="alert" style="text-align: center;">
         ${message} 
     </div>`;
+}
+
+function buildAlertWithMessage(type, message = '') {
+    let alertClass = 'alert-info'; 
+    console.log("TYPE: ", type);
+    switch (type) {
+        case alertType.WARNING:
+            alertClass = 'alert-warning';
+            break;
+        case alertType.ERROR:
+            alertClass = 'alert-danger';
+            break;
+        case alertType.SUCCESS:
+            alertClass = 'alert-success';
+            break;
+        default:
+            break;
+    }
+
+    return `<div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+        ${message}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+        </button>
+    </div>`;
+}
+
+/* ------------- CARD BUTTON ACTIONS --------------- */
+
+/* Helper method to open URL in a separate tab. */
+function openURL(url) {
+    window.open(url, "_blank");
 }
 
 /* Helper function to create a citation with the format <photographer_name> : <photographer_url>. */
