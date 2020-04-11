@@ -1,8 +1,20 @@
 let query = '';
 let searchInput = '';
+
+/* Album of queried photos. */
 let albumContainer = '';
 let album = '';
 
+/* Album of saved photos. */
+
+const albumType = {
+    'SEARCH' : 'Search',
+    'SAVE' : 'Save'
+};
+
+/* ------------- GET STOCK PHOTOS --------------- */
+
+/* Setup event listeners for user search actions. */
 function setupEventListeners() {
     this.searchInput = document.getElementById('search-input'); 
     this.albumContainer = document.getElementById('album-container');
@@ -22,6 +34,7 @@ function userClicked() {
     }
 }
 
+/* Request stock photos from the server. */
 const getStockPhotos = async(url = '', data = {}) => {
     const response = await fetch(url);
 
@@ -40,6 +53,7 @@ const getStockPhotos = async(url = '', data = {}) => {
     }
 }
 
+/* Create an array of photo ids for easy iteration, plus dictionary of id : photo mappings. */
 function processPhotos(data = {}) {
     console.log("Processing photos...");
     let album = {};
@@ -61,6 +75,7 @@ function processPhotos(data = {}) {
     this.album = album;
 }
 
+/* Add returned photos to the album container. */
 function displayPhotos() {
     console.log("Displaying photos...");
 
@@ -71,7 +86,7 @@ function displayPhotos() {
 
     this.album.ids.forEach(id => {
         const photo = this.album.photos[id];
-        let photoTemplate = buildPhotoTemplate(photo);
+        let photoTemplate = buildPhotoTemplate(photo, id);
 
         let div = document.createElement('div');
         div.innerHTML = photoTemplate;
@@ -81,10 +96,20 @@ function displayPhotos() {
     this.albumContainer.appendChild(photoParent);
 }
 
-function buildPhotoTemplate(photo = {}) {
+/* ------------- SAVE STOCK PHOTOS --------------- */
+
+/* Make a request to the server to save the photo. */
+function savePhoto(photoId) {
+    console.log("Save this photo please: ", photoId);
+}
+
+/* ------------- COMMON METHODS --------------- */
+
+/* Card component to display the photo and related actions. */
+function buildPhotoTemplate(photo = {}, id, type = albumType.SEARCH) {
     return `<div class="card p1" style="width: 18rem; margin: 5px;">
         <img style="height: 15rem; object-fit:cover;" src="${photo.src.large2x}" 
-            id="stock-img-${photo.id}" 
+            id="stock-img-${id}" 
             class="card-img-top" 
             data-toggle="modal" data-target="#fullImageModal"
             alt="...">
@@ -92,7 +117,11 @@ function buildPhotoTemplate(photo = {}) {
             <p class="card-text">${photo.photographer}</p>
             <div class="card-buttons d-flex">
                 <button style="margin: 2px;" onclick="copyURLText('${photo.photographer}: ${photo.photographer_url}')" class="btn btn-dark">Create Citation</button>
-                <button style="margin: 2px;" onclick="savePhoto('${photo})" class="btn btn-dark">Add to Album</button>
+                ${ type === albumType.SEARCH? 
+                    `<button style="margin: 2px;" onclick="savePhoto('${id}')" class="btn btn-dark">Add to Album</button>`
+                        :
+                    `<button>Remove from album</button>`
+                }
             </div>
         </div>
     </div>`;
@@ -103,10 +132,3 @@ function copyURLText(urlText = '') {
     navigator.clipboard.writeText(urlText);
     alert("Copied the text: " + urlText);
 }
-
-/* Make a request to the server to save the photo. */
-function savePhoto(photo = {}) {
-    console.log("Save this photo please: ", photo);
-}
-
-
