@@ -72,6 +72,7 @@ function displayPhotos() {
     this.album.ids.forEach(id => {
         const photo = this.album.photos[id];
         let photoTemplate = buildPhotoTemplate(photo);
+
         let div = document.createElement('div');
         div.innerHTML = photoTemplate;
         photoParent.appendChild(div);
@@ -81,10 +82,20 @@ function displayPhotos() {
 }
 
 function buildPhotoTemplate(photo = {}) {
-    return `<div class="card p-1" style="width: 18rem;">
-        <img src="..." class="card-img-top" alt="...">
+    return `<div class="card p1" style="width: 18rem;">
+        <img src="${photo.src.portrait}" 
+            id="stock-img-${photo.id}" 
+            class="card-img-top" 
+            data-toggle="modal" data-target="#fullImageModal"
+            alt="...">
         <div class="card-body">
-            <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+            <p class="card-text">${photo.photographer}</p>
+            <button onclick="copyURLText('${photo.photographer}: ${photo.photographer_url}')" class="btn btn-primary">Create Citation</button>
         </div>
     </div>`;
+}
+
+function copyURLText(urlText = '') {
+    navigator.clipboard.writeText(urlText);
+    alert("Copied the text: " + urlText);
 }
