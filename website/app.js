@@ -138,7 +138,7 @@ const getStockPhotos = async(url = '', type = albumType.SEARCH, isNextPage = fal
         } else {
             processSavedPhotos(newData);
         }
-        displayStockPhotos(type);
+        displayStockPhotos(type, isNextPage);
     } catch (error) {
         console.log("There was an error processing your request: ", error);
         displayAlert(alertType.ERROR, `We are unable to process your query at this time. Please try again later.`);
@@ -233,7 +233,7 @@ const modifyPhotoCollection = async(url = '', operation, data = {}) => {
 /* ------------- COMMON METHODS --------------- */
 
 /* Add returned photos to the album container. */
-function displayStockPhotos(type = albumType.SEARCH) {
+function displayStockPhotos(type = albumType.SEARCH, isNextPage) {
     let photoParent = document.createElement('div');
     photoParent.classList.add('d-flex', 'flex-wrap', 'justify-content-center', 'align-items-start');
 
@@ -268,12 +268,16 @@ function displayStockPhotos(type = albumType.SEARCH) {
         let backToTopDiv = document.createElement('div');
         backToTopDiv.innerHTML = backToTopButton;
         backToTopDiv.onclick = () => {
-            this.albumContainer.scrollTo({top: 0, behavior: 'smooth'});
+            albumContainer.scrollTo({top: 0, behavior: 'smooth'});
         };
         albumContainer.appendChild(backToTopDiv);
     }
 
     albumContainer.appendChild(photoParent);
+
+    if (!isNextPage) {
+        albumContainer.scrollTo({top: 0, behavior: 'smooth'});
+    }
 }
 
 function displayAlert(type = alertType.INFORMATION, message) {
