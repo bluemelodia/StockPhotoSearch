@@ -21,13 +21,19 @@ const alertType = {
 }
 
 /* Back to Top Button - Adapted from Michał Wyrwa's CodePen: https://codepen.io/michalwyrwa/pen/GBaPPj */
-const backToTopButton = `<a id="back-to-top" 
+const backToTopButtonHTML = `<a id="back-to-top" 
                             href="#" 
                             class="btn btn-dark back-to-top" 
                             style="position: fixed; z-index: 999; bottom: 25px; right: 25px;"
                             role="button">
                                 &#9650;
                         </a>`;
+
+const loadMaskHTML = `<div class="d-flex justify-content-center">
+                    <div class="spinner-border" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                </div>`;
 
 function init() { 
     this.stockAlbum = {
@@ -41,6 +47,10 @@ function init() {
 
     /* Avoid fetching the next page multiple times. */
     this.fetchingPage = false;
+
+    /* Loadmask. */
+    this.loadMask = document.createElement('div');
+    this.loadMask.innerHTML = loadMaskHTML;
 
     /* No photos in the collection. */
     this.noPhotosDiv = document.createElement('div');
@@ -120,10 +130,13 @@ function getNextPageStockPhotos() {
 const getStockPhotos = async(url = '', type = albumType.SEARCH, isNextPage = false) => {
     this.fetchingPage = true; 
 
+    const container = type === albumType.SEARCH? this.albumContainer : this.savedPhotosContainer;
+    showLoadMask(container);
     const response = await fetch(url);
 
     try {
         const newData = await response.json();
+        hideLoadMask(container);
         if (newData.statusCode !== 0) {
             throw `request failed with status code: ${newData.statusCode}`;
         }
@@ -135,6 +148,7 @@ const getStockPhotos = async(url = '', type = albumType.SEARCH, isNextPage = fal
         displayStockPhotos(type, isNextPage);
     } catch (error) {
         console.log("There was an error processing your request: ", error);
+        hideLoadMask(container);
         displayAlert(alertType.ERROR, `We are unable to process your query at this time. Please try again later.`);
     } finally {
         this.fetchingPage = false;
@@ -228,6 +242,16 @@ const modifyPhotoCollection = async(url = '', operation, data = {}) => {
     });
 }
 
+/* ------------- LOADMASK METHODS --------------- */
+
+function showLoadMask(parent) {
+    parent.appendChild(this.loadMask);
+}
+
+function hideLoadMask(parent) {
+    parent.removeChild(this.loadMask);
+}
+
 /* ------------- COMMON METHODS --------------- */
 
 /* Add returned photos to the album container. */
@@ -256,7 +280,7 @@ function displayStockPhotos(type = albumType.SEARCH, isNextPage) {
     });
 
     if (type === albumType.SAVE) {
-        photoParent.style['max-height'] = '340px';
+        photoParent.style['max-height'] = '336px';
         photoParent.style['overflow-y'] = 'scroll';
         photoParent.setAttribute('id', 'saved-album-container');
     } else {
@@ -264,7 +288,7 @@ function displayStockPhotos(type = albumType.SEARCH, isNextPage) {
         photoParent.setAttribute('id', 'searched-album-container');
 
         let backToTopDiv = document.createElement('div');
-        backToTopDiv.innerHTML = backToTopButton;
+        backToTopDiv.innerHTML = backToTopButtonHTML;
         backToTopDiv.onclick = () => {
             albumContainer.scrollTo({top: 0, behavior: 'smooth'});
         };
@@ -370,4 +394,3 @@ function configureModal(title, src) {
     this.previewModalTitle.innerHTML = title;
     this.previewModalImage.setAttribute('src', src);
 }
-
