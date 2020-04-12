@@ -1,7 +1,4 @@
 /* Note: lets and consts are not defined on window, which is the value of this in this context. */
-let query = '';
-let nextPage = 1;
-let hasNextPage = false;
 
 const noPhotosMsg = 'You have no saved photos.';
 const emptySearchMessage = 'No results found';
@@ -32,12 +29,18 @@ const backToTopButton = `<a id="back-to-top"
                                 &#9650;
                         </a>`;
 
-function init() {
-    
+function init() { 
     this.stockAlbum = {
         saved: {},
         searched: {}
     };
+
+    this.query = '';
+    this.nextPage = 1;
+    this.hasNextPage = false;
+
+    /* Avoid fetching the next page multiple times. */
+    this.fetchingPage = false;
 
     /* No photos in the collection. */
     this.noPhotosDiv = document.createElement('div');
@@ -68,7 +71,6 @@ function init() {
     getStockPhotos('/photos/saved', albumType.SAVE);
 
     /* Potential future improvement: use Firebase to get saved photos. */
-    /* TODO: fetch subsequent pages. */
 }
 
 /* Setup event listeners for user actions. */
@@ -82,7 +84,7 @@ function setupEventListeners() {
          *  scrollHeight: height of the element's content, including content not visible on the screen due
          *      to overflow.
          */
-        if ((this.albumContainer.offsetHeight + this.albumContainer.scrollTop) >= this.albumContainer.scrollHeight) {
+        if ((this.albumContainer.offsetHeight + this.albumContainer.scrollTop) >= (this.albumContainer.scrollHeight - 50)) {
             getNextPageStockPhotos();
         }
     }
@@ -98,8 +100,8 @@ function setupEventListeners() {
 /* Only make the API call if the user is making a new query. */
 function userClicked() {
     const userQuery = this.searchInput.value;
-    if (userQuery && userQuery.length > 0 && userQuery !== query) {
-        query = userQuery;
+    if (userQuery && userQuery.length > 0 && userQuery !== this.query) {
+        this.query = userQuery;
         nextPage = 1;
         getStockPhotos(`/photos/${userQuery}`);
     }
@@ -108,13 +110,16 @@ function userClicked() {
 /* ------------- GET STOCK PHOTOS --------------- */
 
 function getNextPageStockPhotos() {
-    if (query && query.length > 0 && hasNextPage) {
-        getStockPhotos(`/photos/${query}/page/${nextPage}`, albumType.SEARCH, true);
+    if (this.query && this.query.length > 0 && this.hasNextPage && !this.fetchingPage) {
+        console.log("Query page: ", this.nextPage);
+        getStockPhotos(`/photos/${this.query}/page/${this.nextPage}`, albumType.SEARCH, true);
     }
 }
 
 /* Request stock photos from the server, then update the UI. */
 const getStockPhotos = async(url = '', type = albumType.SEARCH, isNextPage = false) => {
+    this.fetchingPage = true; 
+
     const response = await fetch(url);
 
     try {
@@ -131,6 +136,8 @@ const getStockPhotos = async(url = '', type = albumType.SEARCH, isNextPage = fal
     } catch (error) {
         console.log("There was an error processing your request: ", error);
         displayAlert(alertType.ERROR, `We are unable to process your query at this time. Please try again later.`);
+    } finally {
+        this.fetchingPage = false;
     }
 }
 
@@ -162,10 +169,12 @@ function processStockPhotos(data = {}, isNextPage = false) {
 
         /* Determine if there will be additional pages after this. */
         if (responseData.page * 80 < responseData.total_results) {
-            nextPage = responseData.page + 1;
-            hasNextPage = true;
+            this.nextPage = responseData.page + 1;
+            this.hasNextPage = true;
+            console.log("Next page will be: ", this.nextPage);
         } else {
-            hasNextPage = false;
+            console.log("This is the last page.");
+            this.hasNextPage = false;
         }
     }
     if (isNextPage) {
