@@ -87,6 +87,18 @@ const responses = require('./responses');
 
 /* Set up routes. */
 
+/* User registration. */
+app.post('/register', registerUser);
+function registerUser(req, res) {
+    console.log("Register me");
+}
+
+/* User login. */
+app.post('/login', loginUser);
+function loginUser(req, res) {
+    console.log("Log me in");
+}
+
 /* POST method route - save photos. */
 app.post('/addPhoto', addPhoto);
 function addPhoto(req, res) {

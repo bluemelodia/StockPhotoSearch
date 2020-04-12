@@ -40,6 +40,8 @@ const loadMaskHTML = `<div class="d-flex justify-content-center">
                     </div>
                 </div>`;
 
+const usernameValidator = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+
 function init() { 
     this.stockAlbum = {
         saved: {},
@@ -155,22 +157,68 @@ function showSignUpOrLogin(authAction) {
         this.submitLoginButton.style['display'] = 'block';
         this.submitRegistrationButton.style['display'] = 'none';
     }
+
+    /* Clear the username and password fields. */
+    this.username.value = "";
+    this.password.value = "";
 }
 
 function loginUser() {
-    console.log("Login ", username.value, password.value);
-    validatePassword();
+    if (validateCredentials()) {
+        console.log("Ok, let's login");
+        loginOrSignUpUser('/login', userAuthAction.LOGIN, { username: this.username, password: this.password });
+    }
 }
 
 function submitRegistration() {
-    console.log("Register ", );
-    validatePassword();
+    if (validateCredentials()) {
+        console.log("Ok, let's register");
+        loginOrSignUpUser('/register', userAuthAction.SIGNUP, { username: this.username, password: this.password });
+    }
 }
 
-function validatePassword() {
-    if (this.password.value.length < 6) {
-        console.log("Password too short!");
+/* Client-side validations. Server-side must validate as well. */
+function validateCredentials() {
+    if (!this.username.value || !usernameValidator.test(this.username.value.toLowerCase())) {
+        displayLoginSignUpAlert(alertType.ERROR, "Please enter a valid e-mail address.");
+        return false;
+    } else if (this.password.value.length < 6) {
         displayLoginSignUpAlert(alertType.ERROR, "Passwords must be at least six characters long.");
+        return false;
+    }
+
+    return true;
+}
+
+const loginOrSignUpUser = async(url = '', type = userAuthAction.LOGIN, data = {}) => {
+    const requestOptions = {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data) // body data type must match "Content-Type" header
+    };
+
+    await fetch(url, requestOptions)
+    .then(response => response.json())
+    .then(data => {
+        if (data.statusCode !== 0) {
+            throw `failed to ${ operation === userAuthAction.LOGIN ? 'login' : 'register' } user`;
+        }
+        //displayAlert(alertType.SUCCESS, `Your photo was ${ operation === albumOp.SAVE ? 'added to' : 'deleted from' } your bookmarks.`);
+
+        //getStockPhotos('/photos/saved', albumType.SAVE);
+    })
+    .catch(error => { 
+        console.log("There was an error logging in/signing up: ", error);
+        displayLoginSignUpAlert(alertType.ERROR, `${ operation === userAuthAction.LOGIN ? 'Login' : 'Registration' } failed. Please try again later.`);
+    });
+
+    if (type === userAuthAction.LOGIN) {
+
+    } else {
+
     }
 }
 
@@ -225,7 +273,7 @@ function processStockPhotos(data = {}, isNextPage = false) {
     let responseData = data.responseData;
 
     if (responseData && responseData.photos) {
-        let photos = responseData.photos;
+        const photos = responseData.photos;
         let photoIDs = [];
         let photoData = {};
         photos.forEach(photo => {
@@ -271,7 +319,7 @@ function deletePhoto(photoId) {
 /* Convenience method to save/delete a photo, then update the UI with the updated
  * collection from the server. */
 const modifyPhotoCollection = async(url = '', operation, data = {}) => {
-    let requestOptions = operation === albumOp.SAVE ? 
+    const requestOptions = operation === albumOp.SAVE ? 
     {
         method: 'POST',
         credentials: 'same-origin',
@@ -377,10 +425,10 @@ function displayLoginSignUpAlert(type = alertType.INFORMATION, message) {
 
 /* Card component to display the photo and related actions. */
 function buildPhotoTemplate(photo = {}, id, type = albumType.SEARCH) {
-    let height = type === albumType.SEARCH ? '15rem' : '10rem';
-    let width = type === albumType.SEARCH ? '18rem' : '12rem';
-    let citeText = type === albumType.SEARCH ? 'Create Citation' : 'Cite';
-    let viewText = type === albumType.SEARCH ? 'Full View' : 'View';
+    const height = type === albumType.SEARCH ? '15rem' : '10rem';
+    const width = type === albumType.SEARCH ? '18rem' : '12rem';
+    const citeText = type === albumType.SEARCH ? 'Create Citation' : 'Cite';
+    const viewText = type === albumType.SEARCH ? 'Full View' : 'View';
 
     return `<div class="card p1" style="width: ${ width }; margin: 5px;">
         <img style="height: ${ height }; object-fit:cover;" src="${photo.src.large2x}" 
