@@ -158,9 +158,10 @@ function showSignUpOrLogin(authAction) {
         this.submitRegistrationButton.style['display'] = 'none';
     }
 
-    /* Clear the username and password fields. */
+    /* Clear the username and password fields, plus any alerts. */
     this.username.value = "";
     this.password.value = "";
+    this.regSignUpAlertsContainer.innerHTML = '';
 }
 
 function loginUser() {
@@ -206,9 +207,11 @@ const loginOrSignUpUser = async(url = '', type = userAuthAction.LOGIN, data = {}
         if (data.statusCode !== 0) {
             throw `failed to ${ type === userAuthAction.LOGIN ? 'login' : 'register' } user`;
         }
-        //displayAlert(alertType.SUCCESS, `Your photo was ${ operation === albumOp.SAVE ? 'added to' : 'deleted from' } your bookmarks.`);
-
-        //getStockPhotos('/photos/saved', albumType.SAVE);
+        if (type === userAuthAction.SIGNUP) {
+            displayLoginSignUpAlert(alertType.SUCCESS, 'Registration was successful!');
+        } else {
+            displayLoginSignUpAlert(alertType.SUCCESS, 'Login was successful!');
+        }
     })
     .catch(error => { 
         console.log("There was an error logging in/signing up: ", error);

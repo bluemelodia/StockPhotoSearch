@@ -5,6 +5,8 @@ const statusCodes = {
 
 const errorMessages = {
     INVALID_REQUEST: 'There was a problem with your request.',
+    INVALID_CREDENTIALS: 'User entered invalid credentials.',
+    REGISTRATION_FAILED: 'Failed to create user.',
     PROCESS_FAILED: 'There was an error processing your request.',
     UNSUPPORTED_METHOD: 'Method unsupported.',
     DUPLICATE_ENTRY: 'The item you are trying to add is already in the collection.',

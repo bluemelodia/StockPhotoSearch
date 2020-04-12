@@ -22,6 +22,7 @@ var firebase = require("firebase/app");
 
 /* Add the Firebase products that you want to use. */
 require("firebase/auth");
+require("firebase/firestore");
 
 /* Firebase project config. */
 var firebaseConfig = {
@@ -35,8 +36,11 @@ var firebaseConfig = {
     measurementId: "G-L7Z9ZMFYMK"
 };
   
-/* Initialize Firebase */
+/* Initialize Firebase (also inits cloud firestore) */
 firebase.initializeApp(firebaseConfig);
+
+/* Get a reference to the Firebase database service */
+var firestore = firebase.firestore();
 
 /* Node does not implement the fetch API. */
 const fetch = require("node-fetch");
@@ -105,6 +109,23 @@ function registerUser(req, res) {
         return;
     }
     console.log("cool, let's contact firebase");
+    firebase.auth().createUserWithEmailAndPassword(username, password)
+    .then(() => {
+        console.log("New user created: ", username, password);
+
+        /* Start a photo collection for the new user. */
+        startPhotoCollection(username);
+
+        res.send(responses.reqSuccess());
+    })
+    .catch(function(error) {
+        // Handle Errors here.
+        var errorCode = error.code;
+        var errorMessage = error.message;
+        console.log("There was an error with registration: ", errorCode, errorMessage);
+        res.send(responses.reqError(responses.errMsg.REGISTRATION_FAILED));
+        return;
+    }); 
 }
 
 /* User login. */
@@ -122,6 +143,19 @@ function loginUser(req, res) {
         return;
     }
     console.log("cool, let's contact firebase");
+    firebase.auth().signInWithEmailAndPassword(username, password)
+    .then(() => {
+        console.log("Login was successful for: ", username);
+        res.send(responses.reqSuccess());
+    })
+    .catch(function(error) {
+        // Handle Errors here.
+        var errorCode = error.code;
+        var errorMessage = error.message;
+        console.log("There was an error with login: ", errorCode, errorMessage);
+        res.send(responses.reqError(responses.errMsg.LOGIN_FAILED));
+        return;
+    });
 }
 
 function validateUsernameAndPassword(username, password) {
@@ -155,12 +189,40 @@ function addPhoto(req, res) {
 
         savedPhotos.ids.push(id);
         savedPhotos.photos[id] = photo; 
+        savePhotoToFirebase(id, photo);
 
         console.log("Added new photo: ", id, photo);
         res.send(responses.reqSuccess());
     } catch (error) {
         console.log("Failed to add photo ", error);
         res.send(responses.reqError(responses.errMsg.PROCESS_FAILED));
+    }
+}
+
+/* Firebase methods. */
+
+function startPhotoCollection(username) {
+    firestore.collection('photos').add({
+        user: username,
+        photos: {},
+        ids: []
+    })
+    .then(function(docRef) {
+        console.log("Created user document with ID: ", docRef.id);
+    })
+    .catch(function(error) {
+        console.error("Error adding document: ", error);
+    });
+}
+
+function savePhotoToFirebase(photoId, photoData) {
+    /* If a user is signed in, fetch their saved photos from the Firebase DB. */
+    var user = firebase.auth().currentUser;
+
+    if (user) {
+        // User is signed in.
+        var updates = {};
+       // update['/photos/' + user.username] 
     }
 }
 
@@ -194,7 +256,17 @@ function deletePhoto(req, res) {
 /* GET method route - get saved photos. */
 app.get('/photos/saved', getSavedPhotos);
 async function getSavedPhotos(req, res) {
-    res.send(responses.reqSuccess(savedPhotos));
+    /* If a user is signed in, fetch their saved photos from the Firebase DB. */
+    var user = firebase.auth().currentUser;
+
+    if (user) {
+      // User is signed in.
+      console.log("Hey here's the user: ");
+      res.send(responses.reqSuccess(savedPhotos));
+    } else {
+      // No user is signed in.
+      res.send(responses.reqSuccess(savedPhotos));
+    }
 }
 
 /* GET method route - query API for next page. */
