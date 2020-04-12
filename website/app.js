@@ -166,14 +166,14 @@ function showSignUpOrLogin(authAction) {
 function loginUser() {
     if (validateCredentials()) {
         console.log("Ok, let's login");
-        loginOrSignUpUser('/login', userAuthAction.LOGIN, { username: this.username, password: this.password });
+        loginOrSignUpUser('/login', userAuthAction.LOGIN, { username: this.username.value, password: this.password.value });
     }
 }
 
 function submitRegistration() {
     if (validateCredentials()) {
         console.log("Ok, let's register");
-        loginOrSignUpUser('/register', userAuthAction.SIGNUP, { username: this.username, password: this.password });
+        loginOrSignUpUser('/register', userAuthAction.SIGNUP, { username: this.username.value, password: this.password.value });
     }
 }
 
@@ -204,7 +204,7 @@ const loginOrSignUpUser = async(url = '', type = userAuthAction.LOGIN, data = {}
     .then(response => response.json())
     .then(data => {
         if (data.statusCode !== 0) {
-            throw `failed to ${ operation === userAuthAction.LOGIN ? 'login' : 'register' } user`;
+            throw `failed to ${ type === userAuthAction.LOGIN ? 'login' : 'register' } user`;
         }
         //displayAlert(alertType.SUCCESS, `Your photo was ${ operation === albumOp.SAVE ? 'added to' : 'deleted from' } your bookmarks.`);
 
@@ -212,7 +212,7 @@ const loginOrSignUpUser = async(url = '', type = userAuthAction.LOGIN, data = {}
     })
     .catch(error => { 
         console.log("There was an error logging in/signing up: ", error);
-        displayLoginSignUpAlert(alertType.ERROR, `${ operation === userAuthAction.LOGIN ? 'Login' : 'Registration' } failed. Please try again later.`);
+        displayLoginSignUpAlert(alertType.ERROR, `${ type === userAuthAction.LOGIN ? 'Login' : 'Registration' } failed. Please try again later.`);
     });
 
     if (type === userAuthAction.LOGIN) {

@@ -4,6 +4,9 @@ let savedPhotos = {
     photos: {}
 };
 
+/* Validate client-provided user e-mail address. */
+const usernameValidator = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+
 /* Express to run server and routes. */
 const express = require('express');
 
@@ -90,13 +93,46 @@ const responses = require('./responses');
 /* User registration. */
 app.post('/register', registerUser);
 function registerUser(req, res) {
-    console.log("Register me");
+    console.log("Register me", req.body);
+    if (!req.body.username || !req.body.password) {
+        res.send(responses.reqError(responses.errMsg.INVALID_CREDENTIALS));
+        return;
+    }
+    const username = req.body.username;
+    const password = req.body.password;
+    if (!validateUsernameAndPassword(username, password)) {
+        res.send(responses.reqError(responses.errMsg.INVALID_CREDENTIALS));
+        return;
+    }
+    console.log("cool, let's contact firebase");
 }
 
 /* User login. */
 app.post('/login', loginUser);
 function loginUser(req, res) {
-    console.log("Log me in");
+    console.log("Log me in", req.body);
+    if (!req.body.username || !req.body.password) {
+        res.send(responses.reqError(responses.errMsg.INVALID_CREDENTIALS));
+        return;
+    }
+    const username = req.body.username;
+    const password = req.body.password;
+    if (!validateUsernameAndPassword(username, password)) {
+        res.send(responses.reqError(responses.errMsg.INVALID_CREDENTIALS));
+        return;
+    }
+    console.log("cool, let's contact firebase");
+}
+
+function validateUsernameAndPassword(username, password) {
+    console.log("Username, password ", username, password);
+    if (username.length < 1 || password.length < 6) {
+        return false;
+    } else if (!usernameValidator.test(username.toLowerCase())) {
+        return false;
+    }
+
+    return true;
 }
 
 /* POST method route - save photos. */
