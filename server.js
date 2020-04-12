@@ -230,14 +230,7 @@ async function getSavedPhotos(req, res) {
 
     if (user) {
       // User is signed in.
-      const firebasePhotos = await fetchFirebasePhotos();
-      if (firebasePhotos) {
-        console.log("Sending firebase photos: ", firebasePhotos);
-        res.send(responses.reqSuccess(photos));
-      } else {
-        console.log("Failed to retrieve firebase photos, send the default");
-        res.send(responses.reqSuccess(savedPhotos));
-      }
+      fetchFirebasePhotos(res);
     } else {
       // No user is signed in.
       res.send(responses.reqSuccess(savedPhotos));
@@ -341,24 +334,27 @@ function updateFirebaseAlbum(photoId, photoData = null) {
 }
 
 /* If a user is signed in, fetch their saved photos from the Firebase DB. */
-async function fetchFirebasePhotos() {
+function fetchFirebasePhotos(res) {
     var user = firebase.auth().currentUser;
 
     if (user) {
         // User is signed in, create a reference to the doc. 
         var userDocRef = firestore.collection('photos').doc(user.email);
-        userDocRef.get().then(function(doc) {
+        userDocRef.get()
+        .then(function(doc) {
             if (doc.exists) {
                 console.log("The doc's data: ", doc.data());
-                return doc.data();
+                res.send(responses.reqSuccess(doc.data()));
             } else {
-                console.log("Doc not found");
-                throw ("No such document.");
+                throw("Document does not exist.");
             }
         })
-        .catch(function(error) {
-            console.error("Error fetching photos: ", error);
-            return null;
-        });
+        .catch(error => {
+            console.log("Failed to get data, sending the default: ", error);
+            res.send(responses.reqSuccess(savedPhotos));
+        })
+    } else {
+        console.log("User isn't logged in");
+        res.send(responses.reqSuccess(savedPhotos));
     }
 }
