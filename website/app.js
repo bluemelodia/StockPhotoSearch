@@ -1,6 +1,7 @@
 /* Note: lets and consts are not defined on window, which is the value of this in this context. */
 let query = '';
 let nextPage = 1;
+let hasNextPage = false;
 let searchInput = '';
 
 /* Nav + saved photos. */
@@ -46,6 +47,15 @@ const alertType = {
     'WARNING' : 3
 }
 
+/* Back to Top Button - Adapted from Michał Wyrwa's CodePen: https://codepen.io/michalwyrwa/pen/GBaPPj */
+const backToTopButton = `<a id="back-to-top" 
+                            href="#" 
+                            class="btn btn-dark back-to-top" 
+                            style="position: fixed; bottom: 25px; right: 25px; display: none;"
+                            role="button">
+                                &#9650;
+                        </a>`;
+
 function init() {
     stockAlbum = {
         saved: {},
@@ -67,9 +77,41 @@ function init() {
     this.previewModalImage = document.getElementById('previewModalImage');
 
     getStockPhotos('/photos/saved', albumType.SAVE);
+    //setupObserver();
 
     /* Potential future improvement: use Firebase to get saved photos. */
     /* TODO: fetch subsequent pages. */
+}
+
+/* Used to calculate the proper height for the ablumContainer for scroll to top. */
+function setupObserver() {
+/* Create a new MutationObserver using the MutationObserver constructor, passing 
+ * in a callback function that will be called on each qualifying DOM change. */
+var observer = new MutationObserver(function(mutations) { 
+    /* Loop through the mutations argument, which is a MutationRecord object
+     * with different properties. */
+    mutations.forEach(function(mutation) {
+            if (mutation.type === 'childList' && this.albumContainer.childElementCount > 0) {
+                console.log("Mutation: ", mutation);
+                /* Recalculate height of the album container. */
+                this.albumContainer.setAttribute("style", `overflow: scroll; height: ${ window.innerHeight - this.topContainer.offsetHeight }px;`);
+                this.albumContainer.style.height = window.innerHeight - this.topContainer.offsetHeight;
+                console.log("SET HEIGHT: ", this.albumContainer.style.height);
+            }
+        });
+    });
+
+    /* Specify the options to describe the MutationObserver. */
+    var config = {
+        childList: true,
+        subtree: true
+    };
+
+    /* Begin observing (similar to addEventListener, 
+    * it will listen for the specified MutationObserver). */
+    observer.observe(this.albumContainer, config);
+    observer.observe(this.savedPhotosContainer, config);
+    observer.observe(this.alertsContainer, config);
 }
 
 /* Setup event listeners for user actions. */
@@ -101,8 +143,7 @@ function userClicked() {
 /* ------------- GET STOCK PHOTOS --------------- */
 
 function getNextPageStockPhotos() {
-    if (query && query.length > 0 && nextPage > 1) {
-        console.log("Page and query: ", query, nextPage);
+    if (query && query.length > 0 && hasNextPage) {
         getStockPhotos(`/photos/${query}/page/${nextPage}`, albumType.SEARCH, true);
     }
 }
@@ -112,22 +153,19 @@ const getStockPhotos = async(url = '', type = albumType.SEARCH, isNextPage = fal
     const response = await fetch(url);
 
     try {
-        console.log("Request success: ", response);
         const newData = await response.json();
-        console.log("Returned data: ", newData);
         if (newData.statusCode !== 0) {
-            console.log("Something went wrong...");
-            return;
+            throw `request failed with status code: ${newData.statusCode}`;
         }
         if (type === albumType.SEARCH) {
             processStockPhotos(newData, isNextPage);
         } else {
             processSavedPhotos(newData);
         }
-        console.log("Album: ", stockAlbum);
         displayStockPhotos(type);
     } catch (error) {
         console.log("There was an error processing your request: ", error);
+        displayAlert(alertType.ERROR, `We are unable to process your query at this time. Please try again later.`);
     }
 }
 
@@ -140,7 +178,6 @@ function processSavedPhotos(data = {}) {
 
 /* Create an array of photo ids for easy iteration, plus dictionary of id : photo mappings. */
 function processStockPhotos(data = {}, isNextPage = false) {
-    console.log("Processing photos...");
     let album = {};
     let responseData = data.responseData;
 
@@ -156,13 +193,17 @@ function processStockPhotos(data = {}, isNextPage = false) {
         album.ids = photoIDs;
         album.photos = photoData;
 
+        console.log("Number of results: ", responseData.page, responseData.total_results);
+
         /* Determine if there will be additional pages after this. */
         if (responseData.page * 80 < responseData.total_results) {
             nextPage = responseData.page + 1;
+            hasNextPage = true;
+        } else {
+            hasNextPage = false;
         }
     }
     if (isNextPage) {
-        console.log("Nextpage!");
         stockAlbum.searched.ids = stockAlbum.searched.ids.concat(album.ids);
         stockAlbum.searched.photos = Object.assign({}, stockAlbum.searched.photos, album.photos);
     } else {
@@ -174,13 +215,11 @@ function processStockPhotos(data = {}, isNextPage = false) {
 
 /* Make a request to the server to save the photo. */
 function savePhoto(photoId) {
-    console.log("Save this photo please: ", photoId);
     modifyPhotoCollection('/addPhoto', albumOp.SAVE, { id: photoId, photo: stockAlbum.searched.photos[photoId] });
 }
 
 /* Make a request to the server to delete a saved photo. */
 function deletePhoto(photoId) {
-    console.log("Save this photo please: ", photoId);
     modifyPhotoCollection(`/removePhoto/${photoId}`, albumOp.REMOVE);
 }
 
@@ -202,7 +241,6 @@ const modifyPhotoCollection = async(url = '', operation, data = {}) => {
     await fetch(url, requestOptions)
     .then(response => response.json())
     .then(data => {
-        console.log("Save photo response: ", data);
         if (data.statusCode !== 0) {
             throw `failed to ${ operation === albumOp.SAVE ? 'save' : 'delete' } photo`;
         }
@@ -220,16 +258,16 @@ const modifyPhotoCollection = async(url = '', operation, data = {}) => {
 
 /* Add returned photos to the album container. */
 function displayStockPhotos(type = albumType.SEARCH) {
-    console.log("Displaying photos...");
-
     let photoParent = document.createElement('div');
     photoParent.classList.add('d-flex', 'flex-wrap', 'justify-content-center', 'align-items-start');
 
     if (type === albumType.SAVE) {
         photoParent.style['max-height'] = '340px';
         photoParent.style['overflow-y'] = 'scroll';
+        photoParent.setAttribute('id', 'saved-album-container');
     } else {
         photoParent.classList.add('mt-3', 'mb-3');
+        photoParent.setAttribute('id', 'searched-album-container');
     }
 
     const albumContainer = type === albumType.SEARCH? this.albumContainer : this.savedPhotosContainer;
@@ -252,7 +290,11 @@ function displayStockPhotos(type = albumType.SEARCH) {
         photoParent.appendChild(div);
     });
 
+    let backToTopDiv = document.createElement('div');
+    backToTopDiv.innerHTML = backToTopButton
+
     albumContainer.appendChild(photoParent);
+    albumContainer.appendChild(backToTopDiv);
 }
 
 function displayAlert(type = alertType.INFORMATION, message) {
@@ -307,7 +349,6 @@ function buildDivWithMessage(message = '') {
 
 function buildAlertWithMessage(type, message = '') {
     let alertClass = 'alert-info'; 
-    console.log("TYPE: ", type);
     switch (type) {
         case alertType.WARNING:
             alertClass = 'alert-warning';
@@ -348,3 +389,4 @@ function configureModal(title, src) {
     this.previewModalTitle.innerHTML = title;
     this.previewModalImage.setAttribute('src', src);
 }
+

@@ -1,0 +1,15 @@
+#content-container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+#album-container {
+    overflow: scroll;
+    flex: 0 1 auto;
+}
+
+#top-container {
+    width: 100%;
+    flex: 0 1 auto;
+}
