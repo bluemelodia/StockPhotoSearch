@@ -109,7 +109,7 @@ function registerUser(req, res) {
     }
     firebase.auth().createUserWithEmailAndPassword(username, password)
     .then(() => {
-        console.log("New user created: ", username, password);
+        console.log("POST to register SUCCESS - new user created: ", username, password);
 
         /* Start a photo collection for the new user. */
         startPhotoCollection(username);
@@ -120,7 +120,7 @@ function registerUser(req, res) {
         // Handle Errors here.
         var errorCode = error.code;
         var errorMessage = error.message;
-        console.log("There was an error with registration: ", errorCode, errorMessage);
+        console.log("POST to register ERROR: ", errorCode, errorMessage);
         res.send(responses.reqError(responses.errMsg.REGISTRATION_FAILED));
         return;
     }); 
@@ -141,14 +141,14 @@ function loginUser(req, res) {
     }
     firebase.auth().signInWithEmailAndPassword(username, password)
     .then(() => {
-        console.log("Login was successful for: ", username);
+        console.log("POST to login SUCCESS: ", username);
         res.send(responses.reqSuccess());
     })
     .catch(function(error) {
         // Handle Errors here.
         var errorCode = error.code;
         var errorMessage = error.message;
-        console.log("There was an error with login: ", errorCode, errorMessage);
+        console.log("POST to login ERROR: ", errorCode, errorMessage);
         res.send(responses.reqError(responses.errMsg.LOGIN_FAILED));
         return;
     });
@@ -186,10 +186,10 @@ function addPhoto(req, res) {
         savedPhotos.photos[id] = photo; 
         updateFirebaseAlbum(id, photo);
 
-        console.log("Added new photo: ", id, photo);
+        console.log("POST to addPhoto SUCCESS: ", id, photo);
         res.send(responses.reqSuccess());
     } catch (error) {
-        console.log("Failed to add photo ", error);
+        console.log("POST to addPhoto ERROR: ", error);
         res.send(responses.reqError(responses.errMsg.PROCESS_FAILED));
     }
 }
@@ -214,10 +214,10 @@ function deletePhoto(req, res) {
         delete savedPhotos.photos[id]; 
         updateFirebaseAlbum(id);
 
-        console.log("Removed photo with id: ", id);
+        console.log("DELETE to removePhoto SUCCESS: ", id);
         res.send(responses.reqSuccess());
     } catch (error) {
-        console.log("Failed to remove photo ", error);
+        console.log("DELETE to removePhoto ERROR: ", error);
         res.send(responses.reqError(responses.errMsg.PROCESS_FAILED));
     }
 }
@@ -264,11 +264,11 @@ async function getPhotos(req, res) {
     });
     
     try {
-        console.log("Pexel request succeeded!");
+        console.log("GET Photos SUCCESS");
         const pexelResponse = await pexelData.json();
         res.send(responses.reqSuccess(pexelResponse));
     } catch (error) {
-        console.log("Pexel request failed: ", error);
+        console.log("GET Photos ERROR: ", error);
         res.send(responses.reqError(responses.errMsg.PROCESS_FAILED));
     }
 }
@@ -286,11 +286,8 @@ function startPhotoCollection(username) {
         photos: {},
         ids: []
     })
-    .then(function() {
-        console.log("Created user document");
-    })
     .catch(function(error) {
-        console.error("Error adding document: ", error);
+        console.error("Firebase - create user document ERROR: ", error);
     });
 }
 
@@ -304,7 +301,7 @@ function updateFirebaseAlbum(photoId, photoData = null) {
         var userDocRef = firestore.collection('photos').doc(user.email);
         userDocRef.get().then(function(doc) {
             if (doc.exists) {
-                console.log("The doc's data: ", doc.data());
+                console.log("Firebase - update photos SUCCESS: ", doc.data());
                 let docIds = doc.data().ids;
                 let docPhotos = doc.data().photos;
 
@@ -321,14 +318,11 @@ function updateFirebaseAlbum(photoId, photoData = null) {
                     photos: docPhotos 
                 });
             } else {
-                throw ("No such document, ", userDocRef);
+                throw ("no such document ", userDocRef);
             }
         })
-        .then(function() {
-            console.log("Photo successfully updated/deleted");
-        })
         .catch(function(error) {
-            console.error("Error saving/deleting photo: ", error);
+            console.error("Firebase - update photos ERROR: ", error);
         });
     }
 }
@@ -343,18 +337,18 @@ function fetchFirebasePhotos(res) {
         userDocRef.get()
         .then(function(doc) {
             if (doc.exists) {
-                console.log("The doc's data: ", doc.data());
+                console.log("Firebase - retrieve photos SUCCESS: ", doc.data());
                 res.send(responses.reqSuccess(doc.data()));
             } else {
-                throw("Document does not exist.");
+                throw ("no such document ", userDocRef);
             }
         })
         .catch(error => {
-            console.log("Failed to get data, sending the default: ", error);
+            console.log("Firebase - retrieve photos ERROR, sending default: ", error);
             res.send(responses.reqSuccess(savedPhotos));
         })
     } else {
-        console.log("User isn't logged in");
+        console.log("Firebase - retrieve photos ERROR, user not logged in");
         res.send(responses.reqSuccess(savedPhotos));
     }
 }
