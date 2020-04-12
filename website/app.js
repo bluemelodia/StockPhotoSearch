@@ -97,8 +97,11 @@ function init() {
     this.previewModalImage = document.getElementById('previewModalImage');
 
     getStockPhotos('/photos/saved', albumType.SAVE);
+}
 
-    /* Potential future improvement: use Firebase to get saved photos. */
+/* Import the jQuery function to manually dismiss Bootstrap modals. */
+function importModalHandler(handler) {
+    this.closeBootstrapModal = handler;
 }
 
 /* Setup event listeners for user actions. */
@@ -211,18 +214,18 @@ const loginOrSignUpUser = async(url = '', type = userAuthAction.LOGIN, data = {}
             displayLoginSignUpAlert(alertType.SUCCESS, 'Registration was successful!');
         } else {
             displayLoginSignUpAlert(alertType.SUCCESS, 'Login was successful!');
+            try {
+                closeBootstrapModal('loginModal');
+            } catch(error) {}
+            finally {
+                getStockPhotos('/photos/saved', albumType.SAVE);
+            }
         }
     })
     .catch(error => { 
         console.log("There was an error logging in/signing up: ", error);
         displayLoginSignUpAlert(alertType.ERROR, `${ type === userAuthAction.LOGIN ? 'Login' : 'Registration' } failed. Please try again later.`);
     });
-
-    if (type === userAuthAction.LOGIN) {
-
-    } else {
-
-    }
 }
 
 /* ------------- GET STOCK PHOTOS --------------- */
@@ -248,6 +251,7 @@ const getStockPhotos = async(url = '', type = albumType.SEARCH, isNextPage = fal
         if (newData.statusCode !== 0) {
             throw `request failed with status code: ${newData.statusCode}`;
         }
+        console.log("Firebase returend data: ", newData);
         if (type === albumType.SEARCH) {
             processStockPhotos(newData, isNextPage);
         } else {

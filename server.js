@@ -97,7 +97,6 @@ const responses = require('./responses');
 /* User registration. */
 app.post('/register', registerUser);
 function registerUser(req, res) {
-    console.log("Register me", req.body);
     if (!req.body.username || !req.body.password) {
         res.send(responses.reqError(responses.errMsg.INVALID_CREDENTIALS));
         return;
@@ -108,7 +107,6 @@ function registerUser(req, res) {
         res.send(responses.reqError(responses.errMsg.INVALID_CREDENTIALS));
         return;
     }
-    console.log("cool, let's contact firebase");
     firebase.auth().createUserWithEmailAndPassword(username, password)
     .then(() => {
         console.log("New user created: ", username, password);
@@ -131,7 +129,6 @@ function registerUser(req, res) {
 /* User login. */
 app.post('/login', loginUser);
 function loginUser(req, res) {
-    console.log("Log me in", req.body);
     if (!req.body.username || !req.body.password) {
         res.send(responses.reqError(responses.errMsg.INVALID_CREDENTIALS));
         return;
@@ -142,7 +139,6 @@ function loginUser(req, res) {
         res.send(responses.reqError(responses.errMsg.INVALID_CREDENTIALS));
         return;
     }
-    console.log("cool, let's contact firebase");
     firebase.auth().signInWithEmailAndPassword(username, password)
     .then(() => {
         console.log("Login was successful for: ", username);
@@ -159,7 +155,6 @@ function loginUser(req, res) {
 }
 
 function validateUsernameAndPassword(username, password) {
-    console.log("Username, password ", username, password);
     if (username.length < 1 || password.length < 6) {
         return false;
     } else if (!usernameValidator.test(username.toLowerCase())) {
@@ -235,8 +230,14 @@ async function getSavedPhotos(req, res) {
 
     if (user) {
       // User is signed in.
-      console.log("Hey here's the user: ");
-      res.send(responses.reqSuccess(savedPhotos));
+      const firebasePhotos = await fetchFirebasePhotos();
+      if (firebasePhotos) {
+        console.log("Sending firebase photos: ", firebasePhotos);
+        res.send(responses.reqSuccess(photos));
+      } else {
+        console.log("Failed to retrieve firebase photos, send the default");
+        res.send(responses.reqSuccess(savedPhotos));
+      }
     } else {
       // No user is signed in.
       res.send(responses.reqSuccess(savedPhotos));
@@ -335,6 +336,29 @@ function updateFirebaseAlbum(photoId, photoData = null) {
         })
         .catch(function(error) {
             console.error("Error saving/deleting photo: ", error);
+        });
+    }
+}
+
+/* If a user is signed in, fetch their saved photos from the Firebase DB. */
+async function fetchFirebasePhotos() {
+    var user = firebase.auth().currentUser;
+
+    if (user) {
+        // User is signed in, create a reference to the doc. 
+        var userDocRef = firestore.collection('photos').doc(user.email);
+        userDocRef.get().then(function(doc) {
+            if (doc.exists) {
+                console.log("The doc's data: ", doc.data());
+                return doc.data();
+            } else {
+                console.log("Doc not found");
+                throw ("No such document.");
+            }
+        })
+        .catch(function(error) {
+            console.error("Error fetching photos: ", error);
+            return null;
         });
     }
 }
