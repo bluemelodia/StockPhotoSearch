@@ -70,16 +70,19 @@
                 </button>
                 </div>
                 <div class="modal-body">
+                    <div id="reg-signup-alerts-container"></div>
                     <form>
                         <div class="form-group">
-                          <label for="exampleInputEmail1">Email address</label>
-                          <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp">
+                          <label for="user-email">Email address</label>
+                          <input type="email" class="form-control" id="user-email" aria-describedby="emailHelp">
                         </div>
                         <div class="form-group">
-                          <label for="exampleInputPassword1">Password</label>
-                          <input type="password" class="form-control" id="exampleInputPassword1">
+                          <label for="user-password">Password</label>
+                          <input type="password" class="form-control" id="user-password">
                         </div>
-                        <button id="submit-registration" type="submit" class="btn btn-primary">Register</button>
+                        <button id="submit-registration" 
+                                type="submit" 
+                                class="btn btn-primary">Register</button>
                         <button id="submit-credentials" type="submit" class="btn btn-primary">Login</button>
                     </form>
                 </div>

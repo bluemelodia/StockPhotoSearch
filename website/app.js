@@ -60,6 +60,8 @@ function init() {
     this.registerButton = document.getElementById('signup-button');
     this.submitLoginButton = document.getElementById('submit-credentials');
     this.submitRegistrationButton = document.getElementById('submit-registration');
+    this.username = document.getElementById('user-email');
+    this.password = document.getElementById('user-password');
 
     /* Loadmask. */
     this.loadMask = document.createElement('div');
@@ -86,6 +88,7 @@ function init() {
 
     /* Container for alerts. */
     this.alertsContainer = document.getElementById('alerts-container');
+    this.regSignUpAlertsContainer = document.getElementById('reg-signup-alerts-container');
 
     /* Preview modal. */
     this.previewModalTitle = document.getElementById('previewModalTitle');
@@ -123,6 +126,10 @@ function setupEventListeners() {
         () => showSignUpOrLogin(userAuthAction.LOGIN));
     this.registerButton.addEventListener('click', 
         () => showSignUpOrLogin(userAuthAction.SIGNUP));
+    this.submitLoginButton.addEventListener('click', 
+        () => loginUser());
+    this.submitRegistrationButton.addEventListener('click',
+        () => submitRegistration());
 }
 
 /* Only make the API call if the user is making a new query. */
@@ -147,6 +154,23 @@ function showSignUpOrLogin(authAction) {
     } else {
         this.submitLoginButton.style['display'] = 'block';
         this.submitRegistrationButton.style['display'] = 'none';
+    }
+}
+
+function loginUser() {
+    console.log("Login ", username.value, password.value);
+    validatePassword();
+}
+
+function submitRegistration() {
+    console.log("Register ", );
+    validatePassword();
+}
+
+function validatePassword() {
+    if (this.password.value.length < 6) {
+        console.log("Password too short!");
+        displayLoginSignUpAlert(alertType.ERROR, "Passwords must be at least six characters long.");
     }
 }
 
@@ -340,6 +364,13 @@ function displayAlert(type = alertType.INFORMATION, message) {
     let div = document.createElement('div');
     div.innerHTML = buildAlertWithMessage(type, message);
     this.alertsContainer.appendChild(div);
+}
+
+function displayLoginSignUpAlert(type = alertType.INFORMATION, message) {
+    this.regSignUpAlertsContainer.innerHTML = '';
+    let div = document.createElement('div');
+    div.innerHTML = buildAlertWithMessage(type, message);
+    this.regSignUpAlertsContainer.appendChild(div);
 }
 
 /* ------------- HTML TEMPLATES --------------- */
