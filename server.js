@@ -13,6 +13,28 @@ const port = 3000;
 
 /* Dependencies. */
 
+/* Firebase App (the core Firebase SDK) is always required and
+ * must be listed before other Firebase SDKs */
+var firebase = require("firebase/app");
+
+/* Add the Firebase products that you want to use. */
+require("firebase/auth");
+
+/* Firebase project config. */
+var firebaseConfig = {
+    apiKey: "AIzaSyCbJJfUjNYDFisiw9Q3dfjCv3Iv6qOSukU",
+    authDomain: "stockphotosearch-ee210.firebaseapp.com",
+    databaseURL: "https://stockphotosearch-ee210.firebaseio.com",
+    projectId: "stockphotosearch-ee210",
+    storageBucket: "stockphotosearch-ee210.appspot.com",
+    messagingSenderId: "1028418796901",
+    appId: "1:1028418796901:web:76b8235465bf4287bc758c",
+    measurementId: "G-L7Z9ZMFYMK"
+};
+  
+/* Initialize Firebase */
+firebase.initializeApp(firebaseConfig);
+
 /* Node does not implement the fetch API. */
 const fetch = require("node-fetch");
 const bodyParser = require('body-parser');

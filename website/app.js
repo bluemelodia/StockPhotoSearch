@@ -20,6 +20,11 @@ const alertType = {
     'WARNING' : 3
 }
 
+const userAuthAction = {
+    'LOGIN' : 'Login',
+    'SIGNUP' : 'Register'
+}
+
 /* Back to Top Button - Adapted from Michał Wyrwa's CodePen: https://codepen.io/michalwyrwa/pen/GBaPPj */
 const backToTopButtonHTML = `<a id="back-to-top" 
                             href="#" 
@@ -47,6 +52,14 @@ function init() {
 
     /* Avoid fetching the next page multiple times. */
     this.fetchingPage = false;
+
+    /* Login modal. */
+    this.loginModal = document.getElementById('loginModal');
+    this.loginModalTitle = document.getElementById('loginModalTitle');
+    this.loginButton = document.getElementById('login-button');
+    this.registerButton = document.getElementById('signup-button');
+    this.submitLoginButton = document.getElementById('submit-credentials');
+    this.submitRegistrationButton = document.getElementById('submit-registration');
 
     /* Loadmask. */
     this.loadMask = document.createElement('div');
@@ -105,6 +118,11 @@ function setupEventListeners() {
             userClicked();
         }
     });
+
+    this.loginButton.addEventListener('click', 
+        () => showSignUpOrLogin(userAuthAction.LOGIN));
+    this.registerButton.addEventListener('click', 
+        () => showSignUpOrLogin(userAuthAction.SIGNUP));
 }
 
 /* Only make the API call if the user is making a new query. */
@@ -114,6 +132,21 @@ function userClicked() {
         this.query = userQuery;
         nextPage = 1;
         getStockPhotos(`/photos/${userQuery}`);
+    }
+}
+
+/* ------------- LOGIN AND SIGNUP METHODS --------------- */
+
+function showSignUpOrLogin(authAction) {
+    console.log(authAction, this.loginModalTitle);
+    this.loginModalTitle.innerHTML = authAction;
+
+    if (authAction === userAuthAction.SIGNUP) {
+        this.submitLoginButton.style['display'] = 'none';
+        this.submitRegistrationButton.style['display'] = 'block';
+    } else {
+        this.submitLoginButton.style['display'] = 'block';
+        this.submitRegistrationButton.style['display'] = 'none';
     }
 }
 
