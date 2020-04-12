@@ -2,33 +2,9 @@
 let query = '';
 let nextPage = 1;
 let hasNextPage = false;
-let searchInput = '';
 
-/* Nav + saved photos. */
-let topContainer;
-
-/* Container for queried photos. */
-let albumContainer = '';
-
-/* Container for saved photos. */
-let savedPhotosContainer = '';
-
-/* Container for alerts. */
-let alertsContainer = '';
-
-/* No photos in the collection. */
-let noPhotosDiv;
 const noPhotosMsg = 'You have no saved photos.';
-
-/* Search returned nothing. */
-let emptySearchDiv;
 const emptySearchMessage = 'No results found';
-
-/* Preview modal. */
-let previewModalTitle;
-let previewModalImage;
-
-let stockAlbum = {};
 
 const albumType = {
     'SEARCH' : 'Search',
@@ -51,28 +27,41 @@ const alertType = {
 const backToTopButton = `<a id="back-to-top" 
                             href="#" 
                             class="btn btn-dark back-to-top" 
-                            style="position: fixed; bottom: 25px; right: 25px; display: none;"
+                            style="position: fixed; z-index: 999; bottom: 25px; right: 25px;"
                             role="button">
                                 &#9650;
                         </a>`;
 
 function init() {
-    stockAlbum = {
+    
+    this.stockAlbum = {
         saved: {},
         searched: {}
     };
 
-    noPhotosDiv = document.createElement('div');
-    noPhotosDiv.innerHTML = buildDivWithMessage(noPhotosMsg);
-
-    emptySearchDiv = document.createElement('div');
-    emptySearchDiv.innerHTML = buildDivWithMessage(emptySearchMessage);
+    /* No photos in the collection. */
+    this.noPhotosDiv = document.createElement('div');
+    this.noPhotosDiv.innerHTML = buildDivWithMessage(noPhotosMsg);
+    
+    /* Search returned nothing. */
+    this.emptySearchDiv = document.createElement('div');
+    this.emptySearchDiv.innerHTML = buildDivWithMessage(emptySearchMessage);
 
     this.searchInput = document.getElementById('search-input'); 
+
+    /* Nav + saved photos. */
     this.topContainer = document.getElementById('top-container');
+
+    /* Container for queried photos. */
     this.albumContainer = document.getElementById('album-container');
+
+    /* Container for saved photos. */
     this.savedPhotosContainer = document.getElementById('saved-photos-container');
+
+    /* Container for alerts. */
     this.alertsContainer = document.getElementById('alerts-container');
+
+    /* Preview modal. */
     this.previewModalTitle = document.getElementById('previewModalTitle');
     this.previewModalImage = document.getElementById('previewModalImage');
 
@@ -148,7 +137,7 @@ const getStockPhotos = async(url = '', type = albumType.SEARCH, isNextPage = fal
 /* The server will return the photos as id : photo mappings. */
 function processSavedPhotos(data = {}) {
     if (data.responseData) {
-        stockAlbum.saved = data.responseData;
+        this.stockAlbum.saved = data.responseData;
     }
 }
 
@@ -240,7 +229,7 @@ function displayStockPhotos(type = albumType.SEARCH, isNextPage) {
     const albumContainer = type === albumType.SEARCH? this.albumContainer : this.savedPhotosContainer;
     /* Remove previous children. */
     albumContainer.innerHTML = '';
-    const album = type === albumType.SEARCH? stockAlbum.searched : stockAlbum.saved;
+    const album = type === albumType.SEARCH? this.stockAlbum.searched : this.stockAlbum.saved;
 
     /* If there are no photos, show the empty collection message. */
     if (album.ids.length === 0) {
