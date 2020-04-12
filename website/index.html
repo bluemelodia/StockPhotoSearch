@@ -64,20 +64,13 @@
         <script>
             /* jQuery for scroll to top functionality */
             $(document).ready(function(){
-                $(window).scroll(function () {
+                $('#album-container').scroll(function () {
                     if ($(this).scrollTop() > 50) {
                         $('#back-to-top').fadeIn();
                     } else {
                         $('#back-to-top').fadeOut();
                     }
                 });
-                // scroll body to 0px on click
-                $('#back-to-top').click(function () {
-                    $("html, body").animate({ scrollTop: "0" });
-                    return false;
-                });
-
-
             });
         </script>
     </body>

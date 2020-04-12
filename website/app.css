@@ -6,10 +6,11 @@
 
 #album-container {
     overflow: scroll;
+    /* flex-grow, flex-shrink, and flex-basis */
     flex: 0 1 auto;
 }
 
 #top-container {
     width: 100%;
-    flex: 0 1 auto;
+    flex: 1 0 auto;
 }

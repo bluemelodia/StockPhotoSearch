@@ -77,47 +77,23 @@ function init() {
     this.previewModalImage = document.getElementById('previewModalImage');
 
     getStockPhotos('/photos/saved', albumType.SAVE);
-    //setupObserver();
 
     /* Potential future improvement: use Firebase to get saved photos. */
     /* TODO: fetch subsequent pages. */
 }
 
-/* Used to calculate the proper height for the ablumContainer for scroll to top. */
-function setupObserver() {
-/* Create a new MutationObserver using the MutationObserver constructor, passing 
- * in a callback function that will be called on each qualifying DOM change. */
-var observer = new MutationObserver(function(mutations) { 
-    /* Loop through the mutations argument, which is a MutationRecord object
-     * with different properties. */
-    mutations.forEach(function(mutation) {
-            if (mutation.type === 'childList' && this.albumContainer.childElementCount > 0) {
-                console.log("Mutation: ", mutation);
-                /* Recalculate height of the album container. */
-                this.albumContainer.setAttribute("style", `overflow: scroll; height: ${ window.innerHeight - this.topContainer.offsetHeight }px;`);
-                this.albumContainer.style.height = window.innerHeight - this.topContainer.offsetHeight;
-                console.log("SET HEIGHT: ", this.albumContainer.style.height);
-            }
-        });
-    });
-
-    /* Specify the options to describe the MutationObserver. */
-    var config = {
-        childList: true,
-        subtree: true
-    };
-
-    /* Begin observing (similar to addEventListener, 
-    * it will listen for the specified MutationObserver). */
-    observer.observe(this.albumContainer, config);
-    observer.observe(this.savedPhotosContainer, config);
-    observer.observe(this.alertsContainer, config);
-}
-
 /* Setup event listeners for user actions. */
 function setupEventListeners() {
-    window.onscroll = function(e) {
-        if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight) {
+    this.albumContainer.onscroll = () => {
+        /*
+         *  offsetHeight: height of the element, including vertical padding and borders. 
+         *  scrollTop: the number of pixels that an element's content is scrolled vertically - it's a 
+         *      measurement of the distance from the element's top to its topmost visible content;
+         *      when an element's content doesn't generate a vertical scrollbar, the scrollTop value is 0.
+         *  scrollHeight: height of the element's content, including content not visible on the screen due
+         *      to overflow.
+         */
+        if ((this.albumContainer.offsetHeight + this.albumContainer.scrollTop) >= this.albumContainer.scrollHeight) {
             getNextPageStockPhotos();
         }
     }
@@ -261,15 +237,6 @@ function displayStockPhotos(type = albumType.SEARCH) {
     let photoParent = document.createElement('div');
     photoParent.classList.add('d-flex', 'flex-wrap', 'justify-content-center', 'align-items-start');
 
-    if (type === albumType.SAVE) {
-        photoParent.style['max-height'] = '340px';
-        photoParent.style['overflow-y'] = 'scroll';
-        photoParent.setAttribute('id', 'saved-album-container');
-    } else {
-        photoParent.classList.add('mt-3', 'mb-3');
-        photoParent.setAttribute('id', 'searched-album-container');
-    }
-
     const albumContainer = type === albumType.SEARCH? this.albumContainer : this.savedPhotosContainer;
     /* Remove previous children. */
     albumContainer.innerHTML = '';
@@ -290,11 +257,23 @@ function displayStockPhotos(type = albumType.SEARCH) {
         photoParent.appendChild(div);
     });
 
-    let backToTopDiv = document.createElement('div');
-    backToTopDiv.innerHTML = backToTopButton
+    if (type === albumType.SAVE) {
+        photoParent.style['max-height'] = '340px';
+        photoParent.style['overflow-y'] = 'scroll';
+        photoParent.setAttribute('id', 'saved-album-container');
+    } else {
+        photoParent.classList.add('mt-3', 'mb-3');
+        photoParent.setAttribute('id', 'searched-album-container');
+
+        let backToTopDiv = document.createElement('div');
+        backToTopDiv.innerHTML = backToTopButton;
+        backToTopDiv.onclick = () => {
+            this.albumContainer.scrollTo({top: 0, behavior: 'smooth'});
+        };
+        albumContainer.appendChild(backToTopDiv);
+    }
 
     albumContainer.appendChild(photoParent);
-    albumContainer.appendChild(backToTopDiv);
 }
 
 function displayAlert(type = alertType.INFORMATION, message) {
