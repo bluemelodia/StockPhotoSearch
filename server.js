@@ -202,13 +202,12 @@ function addPhoto(req, res) {
 /* Firebase methods. */
 
 function startPhotoCollection(username) {
-    firestore.collection('photos').add({
-        user: username,
+    firestore.collection('photos').doc(username).set({
         photos: {},
         ids: []
     })
-    .then(function(docRef) {
-        console.log("Created user document with ID: ", docRef.id);
+    .then(function() {
+        console.log("Created user document");
     })
     .catch(function(error) {
         console.error("Error adding document: ", error);
@@ -220,9 +219,29 @@ function savePhotoToFirebase(photoId, photoData) {
     var user = firebase.auth().currentUser;
 
     if (user) {
-        // User is signed in.
-        var updates = {};
-       // update['/photos/' + user.username] 
+        // User is signed in, create a reference to the doc. 
+        var userDocRef = firestore.collection('photos').doc(user.email);
+        userDocRef.get().then(function(doc) {
+            if (doc.exists) {
+                console.log("the doc's data: ", doc.data());
+                let docIds = doc.data().ids;
+                docIds.push(photoId);
+                let docPhotos = doc.data().photos;
+                docPhotos[photoId] = photoData;
+                userDocRef.update({
+                    ids: docIds,
+                    photos: docPhotos 
+                });
+            } else {
+                throw ("no such document, ", userDocRef);
+            }
+        })
+        .then(function() {
+            console.log("Photo successfully updated");
+        })
+        .catch(function(error) {
+            console.error("Error saving photo: ", error);
+        });
     }
 }
 
