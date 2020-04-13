@@ -223,12 +223,13 @@ function deletePhoto(req, res) {
 }
 
 /* GET method route - get saved photos. */
-app.get('/photos/saved', getSavedPhotos);
+app.get('/photos/saved/:fetchCached?', getSavedPhotos);
 async function getSavedPhotos(req, res) {
     /* If a user is signed in, fetch their saved photos from the Firebase DB. */
     var user = firebase.auth().currentUser;
+    console.log("req.params: ", req.params);
 
-    if (user) {
+    if (user && req.params.fetchCached) {
       // User is signed in.
       fetchFirebasePhotos(res);
     } else {
@@ -337,8 +338,16 @@ function fetchFirebasePhotos(res) {
         userDocRef.get()
         .then(function(doc) {
             if (doc.exists) {
-                console.log("Firebase - retrieve photos SUCCESS: ", doc.data());
-                res.send(responses.reqSuccess(doc.data()));
+                let photoData = doc.data();
+                console.log("Firebase - retrieve photos SUCCESS: ", photoData);
+
+                // Move fetched photos to local storage.
+                photoData.ids.forEach(id => {
+                    savedPhotos.ids.push(id);
+                    savedPhotos.photos[id] = photoData.photos[id]; 
+                });
+
+                res.send(responses.reqSuccess(photoData));
             } else {
                 throw ("no such document ", userDocRef);
             }

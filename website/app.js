@@ -95,8 +95,6 @@ function init() {
     /* Preview modal. */
     this.previewModalTitle = document.getElementById('previewModalTitle');
     this.previewModalImage = document.getElementById('previewModalImage');
-
-    getStockPhotos('/photos/saved', albumType.SAVE);
 }
 
 /* Import the jQuery function to manually dismiss Bootstrap modals. */
@@ -218,7 +216,7 @@ const loginOrSignUpUser = async(url = '', type = userAuthAction.LOGIN, data = {}
                 closeBootstrapModal('loginModal');
             } catch(error) {}
             finally {
-                getStockPhotos('/photos/saved', albumType.SAVE);
+                getStockPhotos('/photos/saved/true', albumType.SAVE);
             }
         }
     })
@@ -251,7 +249,6 @@ const getStockPhotos = async(url = '', type = albumType.SEARCH, isNextPage = fal
         if (newData.statusCode !== 0) {
             throw `request failed with status code: ${newData.statusCode}`;
         }
-        console.log("Firebase returend data: ", newData);
         if (type === albumType.SEARCH) {
             processStockPhotos(newData, isNextPage);
         } else {
