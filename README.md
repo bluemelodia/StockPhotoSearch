@@ -8,8 +8,9 @@ Small practice project using JavaScript/Bootstrap CSS frontend and Node.js/Expre
         - Bookmarked photos will persist across user searches.
         - The server will save and retrieve user-bookmarked photos to/from Firebase, so that a user's photos are saved across sessions. This requires that the user login/register with the application.
 
-    Future Improvements:
-        - Support multiple users. 
+    To explore in a future project:
+        - Support multiple users and sessions concurrently.
+
 
 To run:
     node server.js
