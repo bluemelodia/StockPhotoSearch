@@ -343,8 +343,10 @@ function fetchFirebasePhotos(res) {
 
                 // Move fetched photos to local storage.
                 photoData.ids.forEach(id => {
-                    savedPhotos.ids.push(id);
-                    savedPhotos.photos[id] = photoData.photos[id]; 
+                    if (!savedPhotos.photos[id]) {
+                        savedPhotos.ids.push(id);
+                        savedPhotos.photos[id] = photoData.photos[id]; 
+                    }
                 });
 
                 res.send(responses.reqSuccess(photoData));
