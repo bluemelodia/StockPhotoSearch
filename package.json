@@ -4,9 +4,9 @@
   "description": "Small practice project using JavaScript/Bootstrap CSS frontend and Node.js/Express backend. The original assignment was from Udacity's Front End Nanodegree Program, which asked students to create an asynchronous web app that uses Web API and user data to dynamically update the UI in a Weather Journal application. I diverged from and expanded upon the original prompt and created an application that works with the Pexels Stock Photo API.",
   "main": "api-keys.js",
   "dependencies": {
-    "body-parser": "^1.19.0",
+    "body-parser": "^1.20.1",
     "cors": "^2.8.5",
-    "express": "^4.17.1",
+    "express": "^4.18.2",
     "firebase": "^7.14.0",
     "node-fetch": "^2.6.0"
   },
